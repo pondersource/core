@@ -22,8 +22,8 @@ Feature: Exclude groups from receiving shares
     Given using OCS API version "<ocs_api_version>"
     And user "Alice" has created folder "PARENT"
     And user "Alice" has uploaded file "filesForUpload/textfile.txt" to "fileToShare.txt"
-    When the administrator adds group "grp1" to the exclude groups from receiving shares list using the occ command
-    And user "Alice" shares file "fileToShare.txt" with group "grp1" using the sharing API
+    And the administrator has added group "grp1" to the exclude group from sharing list
+    When user "Alice" shares file "fileToShare.txt" with group "grp1" using the sharing API
     Then the OCS status code should be "403"
     And the HTTP status code should be "<http_status_code>"
     And the OCS status message should be "The group is blacklisted for sharing"
@@ -48,13 +48,11 @@ Feature: Exclude groups from receiving shares
     Given using OCS API version "<ocs_api_version>"
     And group "grp3" has been created
     And user "Brian" has been added to group "grp3"
+    And the administrator has added group "grp1, grp2, grp3" to the exclude group from sharing list
     And user "Alice" has created folder "PARENT"
     And user "Alice" has created folder "PARENT/CHILD"
     And user "Alice" has uploaded file "filesForUpload/textfile.txt" to "fileToShare.txt"
-    When the administrator adds group "grp1" to the exclude groups from receiving shares list using the occ command
-    And the administrator adds group "grp2" to the exclude groups from receiving shares list using the occ command
-    And the administrator adds group "grp3" to the exclude groups from receiving shares list using the occ command
-    And user "Alice" shares file "fileToShare.txt" with group "grp1" using the sharing API
+    When user "Alice" shares file "fileToShare.txt" with group "grp1" using the sharing API
     Then the OCS status code should be "403"
     And the HTTP status code should be "<http_status_code>"
     And the OCS status message should be "The group is blacklisted for sharing"
@@ -82,8 +80,8 @@ Feature: Exclude groups from receiving shares
     And user "Alice" has accepted share "/textfile0.txt" offered by user "Carol"
     And user "Carol" has shared folder "PARENT" with user "Alice"
     And user "Alice" has accepted share "/PARENT" offered by user "Carol"
-    When the administrator adds group "grp1" to the exclude groups from receiving shares list using the occ command
-    And user "Alice" shares file "/Shares/textfile0.txt" with group "grp1" using the sharing API
+    And the administrator has added group "grp1" to the exclude group from sharing list
+    When user "Alice" shares file "/Shares/textfile0.txt" with group "grp1" using the sharing API
     Then the OCS status code should be "403"
     And the HTTP status code should be "<http_status_code>"
     And the OCS status message should be "The group is blacklisted for sharing"
@@ -108,8 +106,8 @@ Feature: Exclude groups from receiving shares
     Given using OCS API version "<ocs_api_version>"
     And user "Alice" has created folder "PARENT"
     And user "Alice" has uploaded file "filesForUpload/textfile.txt" to "fileToShare.txt"
-    When the administrator adds group "grp1" to the exclude groups from receiving shares list using the occ command
-    And user "Alice" shares file "fileToShare.txt" with user "Brian" using the sharing API
+    And the administrator has added group "grp1" to the exclude group from sharing list
+    When user "Alice" shares file "fileToShare.txt" with user "Brian" using the sharing API
     Then the OCS status code should be "<ocs_status_code>"
     And the HTTP status code should be "200"
     When user "Alice" shares folder "PARENT" with user "Brian" using the sharing API
@@ -130,8 +128,8 @@ Feature: Exclude groups from receiving shares
     And user "Brian" has been added to group "grp3"
     And user "Alice" has created folder "PARENT"
     And user "Alice" has uploaded file "filesForUpload/textfile.txt" to "fileToShare.txt"
-    When the administrator adds group "grp1" to the exclude groups from receiving shares list using the occ command
-    And user "Alice" shares file "fileToShare.txt" with group "grp3" using the sharing API
+    And the administrator has added group "grp1" to the exclude group from sharing list
+    When user "Alice" shares file "fileToShare.txt" with group "grp3" using the sharing API
     Then the OCS status code should be "<ocs_status_code>"
     And the HTTP status code should be "200"
     When user "Alice" shares folder "PARENT" with group "grp3" using the sharing API
@@ -150,8 +148,8 @@ Feature: Exclude groups from receiving shares
     Given using OCS API version "<ocs_api_version>"
     And user "Brian" has created folder "PARENT"
     And user "Brian" has uploaded file "filesForUpload/textfile.txt" to "fileToShare.txt"
-    When the administrator adds group "grp1" to the exclude groups from receiving shares list using the occ command
-    And user "Brian" shares file "fileToShare.txt" with user "Carol" using the sharing API
+    And the administrator has added group "grp1" to the exclude group from sharing list
+    When user "Brian" shares file "fileToShare.txt" with user "Carol" using the sharing API
     Then the OCS status code should be "<ocs_status_code>"
     And the HTTP status code should be "200"
     And user "Brian" shares folder "PARENT" with user "Carol" using the sharing API
