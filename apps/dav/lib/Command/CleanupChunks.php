@@ -60,8 +60,8 @@ class CleanupChunks extends Command {
 				'local',
 				'l',
 				InputOption::VALUE_NONE,
-				'only delete chunks that exist on the local filesystem, 
-				this applies to setups with multiple servers connected to the same database and 
+				'only delete chunks that exist on the local filesystem,
+				this applies to setups with multiple servers connected to the same database and
 				chunk folder is not shared among'
 			);
 	}
@@ -104,14 +104,25 @@ class CleanupChunks extends Command {
 			$p = new ProgressBar($output);
 			$p->start(\count($filteredUploads));
 
+			$failures = [];
 			foreach ($filteredUploads as $upload) {
 				$p->advance();
 				/** @var UploadFolder $upload */
-				$upload->delete();
+				try {
+					$upload->delete();
+				} catch (\Exception $e) {
+					$failures[$upload->getName()] = $e->getMessage();
+				}
 			}
 
 			$p->finish();
 			$output->writeln('');
+			if ($failures) {
+				$output->writeln("<error>following folders gave problems with the deletion:</error>");
+				foreach ($failures as $key => $value) {
+					$output->writeln("<error>{$key} -> {$value}</error>");
+				}
+			}
 		});
 		return 0;
 	}
