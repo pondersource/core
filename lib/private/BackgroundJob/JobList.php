@@ -265,6 +265,9 @@ class JobList implements IJobList {
 			$job->setId($row['id']);
 			$job->setLastRun($row['last_run']);
 			$job->setArgument(\json_decode($row['argument'], true));
+			$job->setLastChecked($row['last_checked']);
+			$job->setReservedAt($row['reserved_at']);
+			$job->setExecutionDuration($row['execution_duration']);
 
 			return $job;
 		} catch (AutoloadNotAllowedException $e) {
