@@ -62,19 +62,19 @@ interface IJob {
 	 * @param int $lastChecked
 	 * @since 10.11.0
 	 */
-	public function setLastChecked($lastChecked);
+	public function setLastChecked(int $lastChecked): void;
 
 	/**
 	 * @param int $reservedAt
 	 * @since 10.11.0
 	 */
-	public function setReservedAt($reservedAt);
+	public function setReservedAt(int $reservedAt): void;
 
 	/**
 	 * @param int $executionDuration
 	 * @since 10.11.0
 	 */
-	public function setExecutionDuration($executionDuration);
+	public function setExecutionDuration(int $executionDuration): void;
 
 	/**
 	 * Get the id of the background job
@@ -106,26 +106,26 @@ interface IJob {
 	/**
 	 * Get the last time this job was added or checked for scheduling as unix timestamp.
 	 *
-	 * @return int
+	 * @return int representing last checked time
 	 * @since 10.11.0
 	 */
-	public function getLastChecked();
+	public function getLastChecked(): int;
 
 	/**
 	 * Get the reservation time of this job as unix timestamp.
 	 * Returns 0 if job is not reserved for scheduling
 	 *
-	 * @return int
+	 * @return int representing reserved at time
 	 * @since 10.11.0
 	 */
-	public function getReservedAt();
+	public function getReservedAt(): int;
 
 	/**
 	 * Get the last execution duration of this job in seconds.
 	 * Returns 0 below 1 second, and -1 for never scheduled
 	 *
-	 * @return int
+	 * @return int representing execution duration
 	 * @since 10.11.0
 	 */
-	public function getExecutionDuration();
+	public function getExecutionDuration(): int;
 }

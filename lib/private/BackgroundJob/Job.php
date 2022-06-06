@@ -45,17 +45,17 @@ abstract class Job implements IJob {
 	/**
 	 * @var int $lastChecked
 	 */
-	protected $lastChecked;
+	protected $lastChecked = 0;
 
 	/**
 	 * @var int $reservedAt
 	 */
-	protected $reservedAt;
+	protected $reservedAt = 0;
 
 	/**
 	 * @var int $executionDuration
 	 */
-	protected $executionDuration;
+	protected $executionDuration = -1;
 
 	/**
 	 * @param JobList $jobList
@@ -121,15 +121,15 @@ abstract class Job implements IJob {
 		$this->argument = $argument;
 	}
 	
-	public function setLastChecked($lastChecked) {
+	public function setLastChecked(int $lastChecked): void {
 		$this->lastChecked = $lastChecked;
 	}
 	
-	public function setReservedAt($reservedAt) {
+	public function setReservedAt(int $reservedAt): void {
 		$this->reservedAt = $reservedAt;
 	}
 
-	public function setExecutionDuration($executionDuration) {
+	public function setExecutionDuration(int $executionDuration): void {
 		$this->executionDuration = $executionDuration;
 	}
 
@@ -145,15 +145,15 @@ abstract class Job implements IJob {
 		return $this->argument;
 	}
 
-	public function getLastChecked() {
+	public function getLastChecked(): int {
 		return $this->lastChecked;
 	}
 
-	public function getReservedAt() {
+	public function getReservedAt(): int {
 		return $this->reservedAt;
 	}
 
-	public function getExecutionDuration() {
+	public function getExecutionDuration(): int {
 		return $this->executionDuration;
 	}
 }
