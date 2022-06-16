@@ -27,6 +27,7 @@
 namespace OCA\Files_Sharing\Controller;
 
 use OC\Helper\UserTypeHelper;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\OCSController;
@@ -36,12 +37,14 @@ use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\ILogger;
 use OCP\IRequest;
+use OCP\IServerContainer;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use OCP\Share;
 use OCA\Files_Sharing\SharingBlacklist;
+use OCP\User;
 use OCP\Util\UserSearch;
 
 class ShareesController extends OCSController {
@@ -113,6 +116,16 @@ class ShareesController extends OCSController {
 	 */
 	protected $additionalInfoField;
 
+    /**
+     * @var IServerContainer
+     */
+    protected $container;
+
+    /**
+     * @var IAppManager
+     */
+    protected $appManager;
+
 	/** @var SharingBlacklist */
 	protected $sharingBlacklist;
 
@@ -142,7 +155,8 @@ class ShareesController extends OCSController {
 		ILogger $logger,
 		\OCP\Share\IManager $shareManager,
 		SharingBlacklist $sharingBlacklist,
-		UserSearch $userSearch
+		UserSearch $userSearch,
+        IServerContainer $serverContainer
 	) {
 		parent::__construct($appName, $request);
 
@@ -158,13 +172,17 @@ class ShareesController extends OCSController {
 		$this->sharingBlacklist = $sharingBlacklist;
 		$this->userSearch = $userSearch;
 		$this->additionalInfoField = $this->config->getAppValue('core', 'user_additional_info_field', '');
+        $this->container = $serverContainer;
+        $this->appManager = $this->container->getAppManager();
 	}
 
 	/**
 	 * @param string $search
 	 */
 	protected function getUsers($search) {
-		$this->result['users'] = $this->result['exact']['users'] = $users = [];
+
+        $scienceMeshEnabled = $this->appManager->isEnabledForUser("sciencemesh");
+        $this->result['users'] = $this->result['exact']['users'] = $users = [];
 
 		if (\strlen(\trim($search)) === 0 && $this->userSearch->getSearchMinLength() > 0) {
 			$this->result['users'] = [];
@@ -181,7 +199,13 @@ class ShareesController extends OCSController {
 					$users[$uid] = $user;
 				}
 			}
-		} else {
+		}
+        else {
+            if ($scienceMeshEnabled){
+                $scienceneshSearchPlugin = new \OCA\ScienceMesh\Plugins\ScienceMeshSearchPlugin($this->config, $this->userManager, $this->userSession);
+                $resultSet = $scienceneshSearchPlugin->search($search, $this->limit, $this->offset)["users"];
+                $users = array_merge($users, $resultSet);
+            }
 			// Search in all users
 			$usersTmp = $this->userManager->find($search, $this->limit, $this->offset);
 
@@ -197,56 +221,65 @@ class ShareesController extends OCSController {
 		$foundUserById = false;
 		$lowerSearch = \strtolower($search);
 		$userTypeHelper = new UserTypeHelper();
-
 		foreach ($users as $user) {
-			/**
-			 * Php parses numeric UID strings as integer in array key,
-			 * because of that, we need to learn uid from User object
-			 */
-			$uid = $user->getUID();
+		    $entry = [];
+			if ($user instanceof IUser) {
+                /**
+                 * Php parses numeric UID strings as integer in array key,
+                 * because of that, we need to learn uid from User object
+                 */
+                $uid = $user->getUID();
 
-			/* @var $user IUser */
-			$entry = [
-				'label' => $user->getDisplayName(),
-				'value' => [
-					'shareType' => Share::SHARE_TYPE_USER,
-					'shareWith' => $uid,
-					'userType' => $userTypeHelper->getUserType($uid),
-				],
-			];
-			$additionalInfo = $this->getAdditionalUserInfo($user);
-			if ($additionalInfo !== null) {
-				$entry['value']['shareWithAdditionalInfo'] = $additionalInfo;
-			}
+                /* @var $user IUser */
+                $entry = [
+                    'label' => $user->getDisplayName(),
+                    'value' => [
+                        'shareType' => Share::SHARE_TYPE_USER,
+                        'shareWith' => $uid,
+                        'userType' => $userTypeHelper->getUserType($uid),
+                    ],
+                ];
+                $additionalInfo = $this->getAdditionalUserInfo($user);
+                if ($additionalInfo !== null) {
+                    $entry['value']['shareWithAdditionalInfo'] = $additionalInfo;
+                }
+                if (
+                    // Check if the uid is the same
+                    \strtolower($uid) === $lowerSearch
+                    // Check if exact display name
+                    || \strtolower($user->getDisplayName()) === $lowerSearch
+                    // Check if exact first email
+                    || \strtolower($user->getEMailAddress()) === $lowerSearch
+                    // Check for exact search term matches (when mail attributes configured as search terms + no enumeration)
+                    || \in_array($lowerSearch, \array_map('strtolower', $user->getSearchTerms()))) {
+                    if (\strtolower($uid) === $lowerSearch) {
+                        $foundUserById = true;
+                    }
+                    $this->result['exact']['users'][] = $entry;
+                } else {
+                    $userAutoCompleteEnabled = $this->config->getUserValue(
+                        $user->getUID(),
+                        'files_sharing',
+                        'allow_share_dialog_user_enumeration',
+                        'yes'
+                    );
+                    if ($userAutoCompleteEnabled === 'yes') {
+                        $this->result['users'][] = $entry;
+                    }
+                }
+            }
+            else{
+                $entry = [
+                    'label' => $user["uuid"],
+                    'value' => [
+                        'shareType' => Share::SHARE_TYPE_REMOTE,
+                        'shareWith' => $user["name"] ,
+                        'userType' => User::USER_TYPE_GUEST,
+                    ],
+                ];
+                $this->result['users'][] = $entry;
+            }
 
-			if (
-				(
-					// Check if the uid is the same
-					\strtolower($uid) === $lowerSearch
-					// Check if exact display name
-					|| \strtolower($user->getDisplayName()) === $lowerSearch
-					// Check if exact first email
-					|| \strtolower($user->getEMailAddress()) === $lowerSearch
-					// Check for exact search term matches (when mail attributes configured as search terms + no enumeration)
-					|| \in_array($lowerSearch, \array_map('strtolower', $user->getSearchTerms()))
-				)
-				// No exact matches with an empty search query
-				&& $lowerSearch !== '') {
-				if (\strtolower($uid) === $lowerSearch) {
-					$foundUserById = true;
-				}
-				$this->result['exact']['users'][] = $entry;
-			} else {
-				$userAutoCompleteEnabled = $this->config->getUserValue(
-					$user->getUID(),
-					'files_sharing',
-					'allow_share_dialog_user_enumeration',
-					'yes'
-				);
-				if ($userAutoCompleteEnabled === 'yes') {
-					$this->result['users'][] = $entry;
-				}
-			}
 		}
 
 		if ($this->offset === 0 && !$foundUserById) {
