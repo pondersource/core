@@ -31,7 +31,7 @@ class Constants {
 	public const SHARE_TYPE_GUEST = 4;
 	public const SHARE_TYPE_CONTACT = 5; // ToDo Check if it is still in use otherwise remove it
 	public const SHARE_TYPE_REMOTE = 6;  // ToDo Check if it is still in use otherwise remove it
-
+	public const SHARE_TYPE_SCIENCEMESH = 1000;
 	public const CONVERT_SHARE_TYPE_TO_STRING = [
 		self::SHARE_TYPE_USER => 'user',
 		self::SHARE_TYPE_GROUP => 'group',

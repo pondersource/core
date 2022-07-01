@@ -23,10 +23,15 @@ namespace OCA\Files_Sharing\Controller;
 
 use Exception;
 use OC\Files\Filesystem;
+use OC\Helper\UserTypeHelper;
+use OC\ServerContainer;
 use OCA\Files_Sharing\SharingAllowlist;
+use OCP\App\IAppManager;
+use OCP\AppFramework\QueryException;
 use OCP\Constants;
 use OC\OCS\Result;
 use OCP\AppFramework\OCSController;
+use OCP\Defaults;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -36,6 +41,7 @@ use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IServerContainer;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -52,7 +58,6 @@ use OCA\Files_Sharing\Helper;
 use OCA\Files_Sharing\SharingBlacklist;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\GenericEvent;
-use OC\Helper\UserTypeHelper;
 
 /**
  * Class Share20OcsController
@@ -89,12 +94,19 @@ class Share20OcsController extends OCSController {
 	 */
 	private $additionalInfoField;
 
-	/** @var UserTypeHelper */
-	private $userTypeHelper;
+    /** @var UserTypeHelper */
+    private $userTypeHelper;
 
 	/** @var Folder[] */
 	private $currentUserFolder;
 
+    /** @var IAppManager */
+    private $appManager;
+
+    /** @var IServerContainer  */
+    private  $serverContainer ;
+
+    private $dynamicShareTypes ;
 	public function __construct(
 		$appName,
 		IRequest $request,
@@ -110,7 +122,8 @@ class Share20OcsController extends OCSController {
 		EventDispatcher $eventDispatcher,
 		SharingBlacklist $sharingBlacklist,
 		SharingAllowlist $sharingAllowlist,
-		UserTypeHelper $userTypeHelper
+        UserTypeHelper $userTypeHelper,
+        IServerContainer $serverContainer
 	) {
 		parent::__construct($appName, $request);
 		$this->request = $request;
@@ -127,8 +140,38 @@ class Share20OcsController extends OCSController {
 		$this->sharingAllowlist = $sharingAllowlist;
 		$this->additionalInfoField = $this->config->getAppValue('core', 'user_additional_info_field', '');
 		$this->userSession = $userSession;
-		$this->userTypeHelper = $userTypeHelper;
+        $this->userTypeHelper = $userTypeHelper;
+        $this->serverContainer = $serverContainer;
+        $this->appManager = $this->serverContainer->getAppManager();
+
+        $this->dynamicShareTypes = [];
+        // FIXME: Move this line into the sciencemesh app:
+        $this->registerHelper(Share::SHARE_TYPE_SCIENCEMESH, 'sciencemesh', '\OCA\ScienceMesh\ShareProvider\ShareAPIHelper');
 	}
+
+    public function registerHelper($shareType, $identifier, $helperClassName) {
+        $this->dynamicShareTypes[$shareType] = [
+            "identifier" => $identifier,
+            "helperClass" => $helperClassName
+        ];
+    }
+
+    private function haveHelperFor($shareType) {
+        return isset($this->dynamicShareTypes[$shareType]);
+    }
+
+    private function getIdentifierFor($shareType) {
+        return $this->dynamicShareTypes[$shareType]["identifier"];
+    }
+
+    private function getHelperFor($shareType) {
+        $identifier = $this->getIdentifierFor($shareType);
+        if (!$this->appManager->isEnabledForUser($identifier)) {
+            throw new QueryException();
+        }
+
+        return $this->serverContainer->query($this->dynamicShareTypes[$shareType]["helperClass"]);
+    }
 
 	/**
 	 * Returns the additional info to display behind the display name as configured.
@@ -246,7 +289,7 @@ class Share20OcsController extends OCSController {
 			$sharedWith = $this->userManager->get($share->getSharedWith());
 			$result['share_with'] = $share->getSharedWith();
 			$result['share_with_displayname'] = $sharedWith !== null ? $sharedWith->getDisplayName() : $share->getSharedWith();
-			$result['share_with_user_type'] = $this->userTypeHelper->getUserType($share->getSharedWith());
+            $result['share_with_user_type'] = $this->userTypeHelper->getUserType($share->getSharedWith());
 			if ($sharedWith !== null) {
 				$result['share_with_additional_info'] = $this->getAdditionalUserInfo($sharedWith);
 			}
@@ -271,7 +314,15 @@ class Share20OcsController extends OCSController {
 			$result['share_with'] = $share->getSharedWith();
 			$result['share_with_displayname'] = $share->getSharedWith();
 			$result['token'] = $share->getToken();
-		}
+		}elseif ($this->haveHelperFor($share->getShareType())) {
+            $result['share_with'] = $share->getSharedWith();
+            $result['share_with_displayname'] = '';
+
+            try {
+                $result = array_merge($result, $this->getHelperFor($share->getShareType())->formatShare($share));
+            } catch (QueryException $e) {
+            }
+        }
 
 		$result['mail_send'] = $share->getMailSend() ? 1 : 0;
 
@@ -562,7 +613,15 @@ class Share20OcsController extends OCSController {
 			}
 			$share->setSharedWith($shareWith);
 			$share->setPermissions($permissions);
-		} else {
+		}
+        elseif ($this->haveHelperFor($shareType)) {
+            try {
+                $this->getHelperFor($shareType)->createShare($share, $shareWith, $permissions, $expireDate);
+            } catch (QueryException $e) {
+                throw new OCSForbiddenException($this->l->t('Sharing %s failed because the back end does not support this type of shares', [$node->getPath()]));
+            }
+        }
+        else {
 			$share->getNode()->unlock(ILockingProvider::LOCK_SHARED);
 			return new Result(null, 400, $this->l->t('Unknown share type'));
 		}

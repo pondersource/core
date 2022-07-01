@@ -202,8 +202,8 @@ class ShareesController extends OCSController {
 		}
         else {
             if ($scienceMeshEnabled){
-                $scienceneshSearchPlugin = new \OCA\ScienceMesh\Plugins\ScienceMeshSearchPlugin($this->config, $this->userManager, $this->userSession);
-                $resultSet = $scienceneshSearchPlugin->search($search, $this->limit, $this->offset)["users"];
+                $scienceMeshSearchPlugin = new \OCA\ScienceMesh\Plugins\ScienceMeshSearchPlugin($this->config, $this->userManager, $this->userSession);
+                $resultSet = $scienceMeshSearchPlugin->search($search, $this->limit, $this->offset)["users"];
                 $users = array_merge($users, $resultSet);
             }
 			// Search in all users
@@ -267,6 +267,17 @@ class ShareesController extends OCSController {
                         $this->result['users'][] = $entry;
                     }
                 }
+            }
+            elseif (isset($user["type"]) && $user["type"] === "ScienceMesh"){
+                $entry = [
+                    'label' => $user["uuid"],
+                    'value' => [
+                        'shareType' => Share::SHARE_TYPE_SCIENCEMESH,
+                        'shareWith' => $user["name"] ,
+                        'userType' => User::USER_TYPE_GUEST,
+                    ],
+                ];
+                $this->result['users'][] = $entry;
             }
             else{
                 $entry = [
