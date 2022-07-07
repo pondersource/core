@@ -259,7 +259,13 @@ class Manager implements IManager {
 			if ($share->getSharedWith() === null) {
 				throw new \InvalidArgumentException('SharedWith should not be empty');
 			}
-		} else {
+		}
+		elseif ($share->getShareType() === \OCP\Share::SHARE_TYPE_SCIENCEMESH) {
+			if ($share->getSharedWith() === null) {
+				throw new \InvalidArgumentException('SharedWith should not be empty');
+			}
+		}
+		else {
 			// We can't handle other types yet
 			throw new \InvalidArgumentException('Unknown share type');
 		}
