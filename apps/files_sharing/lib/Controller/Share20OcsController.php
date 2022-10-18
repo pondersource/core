@@ -146,7 +146,7 @@ class Share20OcsController extends OCSController {
 
         $this->dynamicShareTypes = [];
         // FIXME: Move this line into the sciencemesh app:
-        $this->registerHelper(Share::SHARE_TYPE_SCIENCEMESH, 'sciencemesh', '\OCA\ScienceMesh\ShareProvider\ShareAPIHelper');
+        $this->registerHelper(Share::SHARE_TYPE_REMOTE, 'sciencemesh', '\OCA\ScienceMesh\ShareProvider\ShareAPIHelper');
 	}
 
     public function registerHelper($shareType, $identifier, $helperClassName) {

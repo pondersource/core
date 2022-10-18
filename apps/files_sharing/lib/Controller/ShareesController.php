@@ -272,7 +272,7 @@ class ShareesController extends OCSController {
                 $entry = [
                     'label' => $user["uuid"],
                     'value' => [
-                        'shareType' => Share::SHARE_TYPE_SCIENCEMESH,
+                        'shareType' => Share::SHARE_TYPE_REMOTE,
                         'shareWith' => $user["name"] ,
                         'userType' => User::USER_TYPE_GUEST,
                     ],
