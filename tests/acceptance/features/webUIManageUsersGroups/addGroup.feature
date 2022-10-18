@@ -76,3 +76,13 @@ Feature: Add group
     Then the user count of group "grp1" should display 3 users on the webUI
     When the administrator reloads the users page
     Then the user count of group "grp1" should display 3 users on the webUI
+
+  @skipOnOcV10.8 @skipOnOcV10.9 @skipOnOcV10.10
+  Scenario: Cannot add group with white-space in the name
+    When the administrator adds group "whitespace " using the webUI
+    Then a notification should be displayed on the webUI with the text "Error creating group: Unable to add group."
+
+  Scenario: Add group with the same name as an existing group
+    Given group "grp1" has been created
+    When the administrator adds group "grp1" using the webUI
+    Then a notification should be displayed on the webUI with the text "Error creating group: Group already exists."

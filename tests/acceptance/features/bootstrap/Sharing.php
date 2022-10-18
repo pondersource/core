@@ -123,6 +123,10 @@ trait Sharing {
 		'attributes', 'permissions', 'share_with', 'share_with_displayname', 'share_with_additional_info'
 	];
 
+	/*
+	 * Contains information about the public links that have been created with the webUI.
+	 * Each entry in the array has a "name", "url" and "path".
+	 */
 	private $createdPublicLinks = [];
 
 	/**
@@ -133,10 +137,54 @@ trait Sharing {
 	}
 
 	/**
+	 * The end (last) entry will itself be an array with keys "name", "url" and "path"
+	 *
+	 * @return array
+	 */
+	public function getLastCreatedPublicLink():array {
+		return \end($this->createdPublicLinks);
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getLastCreatedPublicLinkUrl():string {
+		$lastCreatedLink = $this->getLastCreatedPublicLink();
+		return $lastCreatedLink["url"];
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getLastCreatedPublicLinkPath():string {
+		$lastCreatedLink = $this->getLastCreatedPublicLink();
+		return $lastCreatedLink["path"];
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getLastCreatedPublicLinkToken():string {
+		$lastCreatedLinkUrl = $this->getLastCreatedPublicLinkUrl();
+		// The token is the last part of the URL, delimited by "/"
+		$urlParts = \explode("/", $lastCreatedLinkUrl);
+		return \end($urlParts);
+	}
+
+	/**
 	 * @return SimpleXMLElement|null
 	 */
 	public function getLastPublicShareData():?SimpleXMLElement {
 		return $this->lastPublicShareData;
+	}
+
+	/**
+	 * @param SimpleXMLElement $responseXml
+	 *
+	 * @return void
+	 */
+	public function setLastPublicShareData(SimpleXMLElement $responseXml): void {
+		$this->lastPublicShareData = $responseXml;
 	}
 
 	/**
@@ -985,7 +1033,11 @@ trait Sharing {
 		$bodyRows = $body->getRowsHash();
 		if (\array_key_exists('expireDate', $bodyRows)) {
 			$dateModification = $bodyRows['expireDate'];
-			$bodyRows['expireDate'] = \date('Y-m-d', \strtotime($dateModification));
+			if (!empty($bodyRows['expireDate'])) {
+				$bodyRows['expireDate'] = \date('Y-m-d', \strtotime($dateModification));
+			} else {
+				$bodyRows['expireDate'] = '';
+			}
 		}
 		if (\array_key_exists('password', $bodyRows)) {
 			$bodyRows['password'] = $this->getActualPassword($bodyRows['password']);
@@ -998,7 +1050,6 @@ trait Sharing {
 				$bodyRows['permissions'] = SharingHelper::getPermissionSum($bodyRows['permissions']);
 			}
 		}
-
 		$this->response = OcsApiHelper::sendRequest(
 			$this->getBaseUrl(),
 			$user,
@@ -1092,11 +1143,12 @@ trait Sharing {
 	/**
 	 * @param string $name
 	 * @param string $url
+	 * @param string $path
 	 *
 	 * @return void
 	 */
-	public function addToListOfCreatedPublicLinks(string $name, string $url):void {
-		$this->createdPublicLinks[] = ["name" => $name, "url" => $url];
+	public function addToListOfCreatedPublicLinks(string $name, string $url, string $path = ""):void {
+		$this->createdPublicLinks[] = ["name" => $name, "url" => $url, "path" => $path];
 	}
 
 	/**
@@ -1159,21 +1211,19 @@ trait Sharing {
 			|| (($httpStatusCode === 200) && ($this->ocsContext->getOCSResponseStatusCode($this->response) > 299))
 		) {
 			if ($shareType === 'public_link') {
-				$this->lastPublicShareData = null;
-				$this->lastPublicShareId = null;
-				$this->userWhoCreatedLastPublicShare = null;
+				$this->resetLastPublicShareData();
 			} else {
 				$this->resetLastShareInfoForUser($user);
 			}
 		} else {
 			if ($shareType === 'public_link') {
-				$this->lastPublicShareData = $this->getResponseXml(null, __METHOD__);
+				$this->setLastPublicShareData($this->getResponseXml(null, __METHOD__));
 				$this->setLastPublicLinkShareId((string) $this->lastPublicShareData->data[0]->id);
-				$this->userWhoCreatedLastPublicShare = $user;
+				$this->setUserWhoCreatedLastPublicShare($user);
 				if (isset($this->lastPublicShareData->data)) {
 					$linkName = (string) $this->lastPublicShareData->data[0]->name;
 					$linkUrl = (string) $this->lastPublicShareData->data[0]->url;
-					$this->addToListOfCreatedPublicLinks($linkName, $linkUrl);
+					$this->addToListOfCreatedPublicLinks($linkName, $linkUrl, $path);
 				}
 			} else {
 				$shareData = $this->getResponseXml(null, __METHOD__);
@@ -2122,7 +2172,7 @@ trait Sharing {
 	 * @throws Exception
 	 */
 	public function theUserGetsInfoOfLastPublicLinkShareUsingTheSharingApi():void {
-		$this->userGetsInfoOfLastPublicLinkShareUsingTheSharingApi($this->userWhoCreatedLastPublicShare);
+		$this->userGetsInfoOfLastPublicLinkShareUsingTheSharingApi($this->getUserWhoCreatedLastPublicShare());
 	}
 
 	/**
@@ -2219,6 +2269,26 @@ trait Sharing {
 	 */
 	public function getLastPublicLinkShareId():?string {
 		return $this->lastPublicShareId;
+	}
+
+	/**
+	 * Sets the user who created the last public link share
+	 *
+	 * @param string $user
+	 *
+	 * @return void
+	 */
+	public function setUserWhoCreatedLastPublicShare(string $user):void {
+		$this->userWhoCreatedLastPublicShare = $user;
+	}
+
+	/**
+	 * Gets the user who created the last public link share
+	 *
+	 * @return string|null
+	 */
+	public function getUserWhoCreatedLastPublicShare():?string {
+		return $this->userWhoCreatedLastPublicShare;
 	}
 
 	/**
@@ -3532,14 +3602,15 @@ trait Sharing {
 	 *
 	 * @param string $group
 	 *
-	 * @return void
+	 * @return int
 	 * @throws Exception
 	 */
-	public function administratorAddsGroupToExcludeFromReceivingSharesList(string $group):void {
+	public function administratorAddsGroupToExcludeFromReceivingSharesList(string $group): int {
 		//get current groups
 		$occExitCode = $this->runOcc(
 			['config:app:get files_sharing blacklisted_receiver_groups']
 		);
+
 		$occStdOut = $this->getStdOutOfOccCommand();
 		$occStdErr = $this->getStdErrOfOccCommand();
 
@@ -3566,16 +3637,28 @@ trait Sharing {
 		);
 
 		$currentGroups[] = $group;
-		$setSettingExitCode = $this->runOcc(
+		return $this->runOcc(
 			[
 				'config:app:set',
 				'files_sharing blacklisted_receiver_groups',
 				'--value=' . \json_encode($currentGroups)
 			]
 		);
+	}
+
+	/**
+	 * @Given the administrator has added group :group to the exclude groups from receiving shares list
+	 *
+	 * @param string $group
+	 *
+	 * @return void
+	 * @throws Exception
+	 */
+	public function administratorHasAddedGroupToExcludeFromReceivingSharesList(string $group):void {
+		$setSettingExitCode = $this->administratorAddsGroupToExcludeFromReceivingSharesList($group);
 		if ($setSettingExitCode !== 0) {
 			throw new Exception(
-				"could not set files_sharing blacklisted_receiver_groups " .
+				__METHOD__ . " could not set files_sharing blacklisted_receiver_groups " .
 				$setSettingExitCode . " " .
 				$this->getStdOutOfOccCommand() . " " .
 				$this->getStdErrOfOccCommand()
@@ -3658,14 +3741,39 @@ trait Sharing {
 	}
 
 	/**
+	 * The tests can create public link shares with the API or with the webUI.
+	 * If lastPublicShareData is null, then there have not been any created with the API,
+	 * so look for details of a public link share created with the webUI.
+	 *
 	 * @return string authorization token
 	 */
 	public function getLastPublicShareToken():string {
-		if (\count($this->lastPublicShareData->data->element) > 0) {
-			return (string)$this->lastPublicShareData->data[0]->token;
-		}
+		if ($this->lastPublicShareData === null) {
+			return $this->getLastCreatedPublicLinkToken();
+		} else {
+			if (\count($this->lastPublicShareData->data->element) > 0) {
+				return (string)$this->lastPublicShareData->data[0]->token;
+			}
 
-		return (string)$this->lastPublicShareData->data->token;
+			return (string)$this->lastPublicShareData->data->token;
+		}
+	}
+
+	/**
+	 * @return string path of file that was shared (relevant when a single file has been shared)
+	 */
+	public function getLastPublicSharePath():string {
+		if ($this->lastPublicShareData === null) {
+			// There have not been any public links created with the API
+			// so get the path of the last public link created with the webUI
+			return $this->getLastCreatedPublicLinkPath();
+		} else {
+			if (\count($this->lastPublicShareData->data->element) > 0) {
+				return (string)$this->lastPublicShareData->data[0]->path;
+			}
+
+			return (string)$this->lastPublicShareData->data->path;
+		}
 	}
 
 	/**
@@ -3878,6 +3986,115 @@ trait Sharing {
 	 */
 	public function userAddsPublicShareCreatedByUser(string $user, string $shareServer):void {
 		$this->saveLastSharedPublicLinkShare($user, $shareServer);
+	}
+
+	/**
+	 * Expires last created public link share using the testing API
+	 *
+	 * @return void
+	 * @throws GuzzleException
+	 */
+	public function expireLastCreatedPublicLinkShare():void {
+		$shareId = $this->getLastPublicLinkShareId();
+		$this->expireShare($shareId);
+	}
+
+	/**
+	 * Expires a share using the testing API
+	 *
+	 * @param string|null $shareId optional share id, if null then expire the last share that was created.
+	 *
+	 * @return void
+	 * @throws GuzzleException
+	 */
+	public function expireShare(string $shareId = null):void {
+		$adminUser = $this->getAdminUsername();
+		if ($shareId === null) {
+			$shareId = $this->getLastShareId();
+		}
+		$response = OcsApiHelper::sendRequest(
+			$this->getBaseUrl(),
+			$adminUser,
+			$this->getAdminPassword(),
+			'POST',
+			"/apps/testing/api/v1/expire-share/{$shareId}",
+			$this->getStepLineRef(),
+			[],
+			$this->getOcsApiVersion()
+		);
+		$this->setResponse($response);
+	}
+
+	/**
+	 * @Given the administrator has expired the last created share using the testing API
+	 *
+	 * @return void
+	 * @throws GuzzleException
+	 */
+	public function theAdministratorHasExpiredTheLastCreatedShare():void {
+		$this->expireShare();
+		$httpStatus = $this->getResponse()->getStatusCode();
+		Assert::assertSame(
+			200,
+			$httpStatus,
+			"Request to expire last share failed. HTTP status was '$httpStatus'"
+		);
+		$ocsStatusMessage = $this->ocsContext->getOCSResponseStatusMessage($this->getResponse());
+		if ($this->getOcsApiVersion() === 1) {
+			$expectedOcsStatusCode = "100";
+		} else {
+			$expectedOcsStatusCode = "200";
+		}
+		$this->ocsContext->theOCSStatusCodeShouldBe(
+			$expectedOcsStatusCode,
+			"Request to expire last share failed: '$ocsStatusMessage'"
+		);
+	}
+
+	/**
+	 * @Given the administrator has expired the last created public link share using the testing API
+	 *
+	 * @return void
+	 * @throws GuzzleException
+	 */
+	public function theAdministratorHasExpiredTheLastCreatedPublicLinkShare():void {
+		$this->expireLastCreatedPublicLinkShare();
+		$httpStatus = $this->getResponse()->getStatusCode();
+		Assert::assertSame(
+			200,
+			$this->getResponse()->getStatusCode(),
+			"Request to expire last public link share failed. HTTP status was '$httpStatus'"
+		);
+		$ocsStatusMessage = $this->ocsContext->getOCSResponseStatusMessage($this->getResponse());
+		if ($this->getOcsApiVersion() === 1) {
+			$expectedOcsStatusCode = "100";
+		} else {
+			$expectedOcsStatusCode = "200";
+		}
+		$this->ocsContext->theOCSStatusCodeShouldBe(
+			$expectedOcsStatusCode,
+			"Request to expire last public link share failed: '$ocsStatusMessage'"
+		);
+	}
+
+	/**
+	 * @When the administrator expires the last created share using the testing API
+	 *
+	 * @return void
+	 * @throws GuzzleException
+	 */
+	public function theAdministratorExpiresTheLastCreatedShare():void {
+		$this->expireShare();
+	}
+
+	/**
+	 * @When the administrator expires the last created public link share using the testing API
+	 *
+	 * @return void
+	 * @throws GuzzleException
+	 */
+	public function theAdministratorExpiresTheLastCreatedPublicLinkShare():void {
+		$this->expireLastCreatedPublicLinkShare();
 	}
 
 	/**

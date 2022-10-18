@@ -57,7 +57,7 @@ config = {
     "phpunit": {
         "mostDatabases": {
             "phpVersions": [
-                "7.3",
+                DEFAULT_PHP_VERSION,
             ],
             # Gather coverage for all databases except Oracle
             "coverage": True,
@@ -68,6 +68,8 @@ config = {
                 "mariadb:10.4",
                 "mariadb:10.5",
                 "mariadb:10.6",
+                "mariadb:10.7",
+                "mariadb:10.8",
                 "mysql:5.5",
                 "mysql:5.7",
                 "mysql:8.0",
@@ -77,7 +79,7 @@ config = {
         },
         "slowDatabases": {
             "phpVersions": [
-                "7.3",
+                DEFAULT_PHP_VERSION,
             ],
             # Oracle takes a long time to start and run
             # So do not collect coverage for that
@@ -87,18 +89,8 @@ config = {
                 "oracle",
             ],
         },
-        "reducedDatabases": {
-            "phpVersions": [
-                DEFAULT_PHP_VERSION,
-            ],
-            "databases": [
-                "sqlite",
-                "mariadb:10.2",
-            ],
-        },
         "external-samba-windows": {
             "phpVersions": [
-                "7.3",
                 DEFAULT_PHP_VERSION,
             ],
             "databases": [
@@ -118,7 +110,6 @@ config = {
         },
         "external-other": {
             "phpVersions": [
-                "7.3",
                 DEFAULT_PHP_VERSION,
             ],
             "databases": [
@@ -222,7 +213,7 @@ config = {
                 "apiFederationToShares2",
             ],
             "federatedServerNeeded": True,
-            "federatedServerVersions": ["git", "latest", "10.8.0"],
+            "federatedServerVersions": ["git", "latest", "10.9.1"],
         },
         "cli": {
             "suites": [
@@ -297,7 +288,7 @@ config = {
                 "cliExternalStorage",
             ],
             "federatedServerNeeded": True,
-            "federatedServerVersions": ["git", "latest", "10.8.0"],
+            "federatedServerVersions": ["git", "latest", "10.9.1"],
             "extraApps": {
                 "files_external": "",
             },
@@ -333,6 +324,7 @@ config = {
                 "webUIUpload": "",
                 "webUIWebdavLockProtection": "webUIWebdavLockProt",
                 "webUIWebdavLocks": "",
+                "webUIWithCLI": "",
             },
             "filterTags": "~@local_storage&&~@files_external-app-required",
             "emailNeeded": True,
@@ -376,7 +368,7 @@ config = {
                 "webUISharingExternal2": "webUISharingExt2",
             },
             "federatedServerNeeded": True,
-            "federatedServerVersions": ["git", "latest", "10.8.0"],
+            "federatedServerVersions": ["git", "latest", "10.9.1"],
         },
         "webUIFirefox": {
             "suites": {
@@ -535,7 +527,7 @@ def dependencies(ctx):
         return pipelines
 
     default = {
-        "phpVersions": ["7.3"],
+        "phpVersions": [DEFAULT_PHP_VERSION],
     }
 
     if "defaults" in config:
@@ -873,7 +865,7 @@ def phan(ctx):
         return pipelines
 
     default = {
-        "phpVersions": ["7.3", DEFAULT_PHP_VERSION],
+        "phpVersions": [DEFAULT_PHP_VERSION],
         "logLevel": "2",
     }
 
@@ -944,7 +936,7 @@ def litmus():
         return pipelines
 
     default = {
-        "phpVersions": ["7.3", DEFAULT_PHP_VERSION],
+        "phpVersions": [DEFAULT_PHP_VERSION],
         "logLevel": "2",
         "useHttps": True,
     }
@@ -1095,7 +1087,7 @@ def dav():
         return pipelines
 
     default = {
-        "phpVersions": ["7.3", DEFAULT_PHP_VERSION],
+        "phpVersions": [DEFAULT_PHP_VERSION],
         "logLevel": "2",
     }
 
@@ -1284,7 +1276,7 @@ def phpTests(ctx, testType, withCoverage):
     # The default PHP unit test settings for a PR.
     # Note: do not run Oracle by default in PRs.
     prDefault = {
-        "phpVersions": ["7.3", DEFAULT_PHP_VERSION],
+        "phpVersions": [DEFAULT_PHP_VERSION],
         "databases": [
             "sqlite",
             "mariadb:10.2",
@@ -1292,6 +1284,8 @@ def phpTests(ctx, testType, withCoverage):
             "mariadb:10.4",
             "mariadb:10.5",
             "mariadb:10.6",
+            "mariadb:10.7",
+            "mariadb:10.8",
             "mysql:5.5",
             "mysql:5.7",
             "mysql:8.0",
@@ -1314,7 +1308,7 @@ def phpTests(ctx, testType, withCoverage):
 
     # The default PHP unit test settings for the cron job (usually runs nightly).
     cronDefault = {
-        "phpVersions": ["7.3", DEFAULT_PHP_VERSION],
+        "phpVersions": [DEFAULT_PHP_VERSION],
         "databases": [
             "sqlite",
             "mariadb:10.2",
@@ -1322,6 +1316,8 @@ def phpTests(ctx, testType, withCoverage):
             "mariadb:10.4",
             "mariadb:10.5",
             "mariadb:10.6",
+            "mariadb:10.7",
+            "mariadb:10.8",
             "mysql:5.5",
             "mysql:5.7",
             "mysql:8.0",
@@ -1383,16 +1379,22 @@ def phpTests(ctx, testType, withCoverage):
 
         for phpVersion in params["phpVersions"]:
             if testType == "phpunit":
-                command = "su-exec www-data bash tests/drone/test-phpunit.sh"
+                command = "setpriv --reuid=www-data --regid=www-data --init-groups bash tests/drone/test-phpunit.sh"
             else:
                 command = "unknown tbd"
+
+            # Get the first 3 characters of the PHP version (7.4 or 8.0 etc)
+            # And use that for constructing the pipeline name
+            # That helps shorten pipeline names when using owncloud-ci images
+            # that have longer names like 7.4-ubuntu20.04
+            phpMinorVersion = phpVersion[0:3]
 
             for db in params["databases"]:
                 for externalType in params["externalTypes"]:
                     keyString = "-" + category if params["includeKeyInMatrixName"] else ""
                     filesExternalType = externalType if externalType != "none" else ""
                     externalNameString = "-" + externalType if externalType != "none" else ""
-                    name = "%s%s-php%s-%s%s" % (testType, keyString, phpVersion, getShortDbNameAndVersion(db), externalNameString)
+                    name = "%s%s-php%s-%s%s" % (testType, keyString, phpMinorVersion, getShortDbNameAndVersion(db), externalNameString)
                     maxLength = 50
                     nameLength = len(name)
                     if nameLength > maxLength:
@@ -1657,6 +1659,11 @@ def acceptance(ctx):
             for federatedServerVersion in params["federatedServerVersions"]:
                 for browser in params["browsers"]:
                     for phpVersion in params["phpVersions"]:
+                        # Get the first 3 characters of the PHP version (7.4 or 8.0 etc)
+                        # And use that for constructing the pipeline name
+                        # That helps shorten pipeline names when using owncloud-ci images
+                        # that have longer names like 7.4-ubuntu20.04
+                        phpMinorVersion = phpVersion[0:3]
                         for db in params["databases"]:
                             for runPart in range(1, params["numberOfParts"] + 1):
                                 debugPartsEnabled = (len(params["skipExceptParts"]) != 0)
@@ -1678,7 +1685,7 @@ def acceptance(ctx):
                                     keyString = "-" + category if params["includeKeyInMatrixName"] else ""
                                     partString = "" if params["numberOfParts"] == 1 else "-%d-%d" % (params["numberOfParts"], runPart)
                                     federatedServerVersionString = "-" + federatedServerVersion.replace("daily-", "").replace("-qa", "") if (federatedServerVersion != "") else ""
-                                    name = "%s%s%s%s%s-%s-php%s" % (alternateSuiteName, keyString, partString, federatedServerVersionString, browserString, getShortDbNameAndVersion(db), phpVersion)
+                                    name = "%s%s%s%s%s-%s-php%s" % (alternateSuiteName, keyString, partString, federatedServerVersionString, browserString, getShortDbNameAndVersion(db), phpMinorVersion)
                                     maxLength = 50
                                     nameLength = len(name)
                                     if nameLength > maxLength:
@@ -1738,7 +1745,7 @@ def acceptance(ctx):
 
                                     # The test suite (may/will) run local commands, rather than calling the testing app to do them
                                     # Those commands need to be executed as www-data (which owns the files)
-                                    suExecCommand = "su-exec www-data "
+                                    suExecCommand = "setpriv --reuid=www-data --regid=www-data --init-groups "
 
                                 if params["testAgainstCoreTarball"]:
                                     pathOfServerUnderTest = "/drone/core"

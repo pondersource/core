@@ -1,4 +1,4 @@
-@api @smokeTest @public_link_share-feature-required @files_sharing-app-required @issue-ocis-reva-172 @skipOnOcV10.6 @skipOnOcV10.7 @skipOnOcV10.8.0
+@api @smokeTest @public_link_share-feature-required @files_sharing-app-required @issue-ocis-reva-172 @skipOnOcV10.6 @skipOnOcV10.7 @skipOnOcV10.8.0 @notToImplementOnOCIS
 Feature: set timeouts of LOCKS on shares
 
   Background:
@@ -40,15 +40,6 @@ Feature: set timeouts of LOCKS on shares
       | new      | second--1       | /Second-\d{5}$/ |
       | new      | second-0        | /Second-\d{4}$/ |
 
-    @personalSpace @skipOnOcV10
-    Examples:
-      | dav-path | timeout         | result          |
-      | spaces   | second-999      | /Second-\d{3}$/ |
-      | spaces   | second-99999999 | /Second-\d{5}$/ |
-      | spaces   | infinite        | /Second-\d{5}$/ |
-      | spaces   | second--1       | /Second-\d{5}$/ |
-      | spaces   | second-0        | /Second-\d{4}$/ |
-
 
   Scenario Outline: as share receiver set timeout on folder as owner check it
     Given using <dav-path> DAV path
@@ -73,12 +64,3 @@ Feature: set timeouts of LOCKS on shares
       | new      | infinite        | /Second-\d{5}$/ |
       | new      | second--1       | /Second-\d{5}$/ |
       | new      | second-0        | /Second-\d{4}$/ |
-
-    @personalSpace @skipOnOcV10
-    Examples:
-      | dav-path | timeout         | result          |
-      | spaces   | second-999      | /Second-\d{3}$/ |
-      | spaces   | second-99999999 | /Second-\d{5}$/ |
-      | spaces   | infinite        | /Second-\d{5}$/ |
-      | spaces   | second--1       | /Second-\d{5}$/ |
-      | spaces   | second-0        | /Second-\d{4}$/ |

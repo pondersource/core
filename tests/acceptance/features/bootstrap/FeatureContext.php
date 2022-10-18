@@ -307,7 +307,7 @@ class FeatureContext extends BehatVariablesContext {
 	/**
 	 * @var int return code of last command
 	 */
-	private $lastCode;
+	private $occLastCode;
 	/**
 	 * @var string stdout of last command
 	 */
@@ -369,6 +369,22 @@ class FeatureContext extends BehatVariablesContext {
 	 */
 	public function getOCSelector(): string {
 		return $this->oCSelector;
+	}
+
+	/**
+	 * @return void
+	 */
+	public function resetOccLastCode():void {
+		$this->occLastCode = null;
+	}
+
+	/**
+	 * @param int $statusCode
+	 *
+	 * @return void
+	 */
+	public function setOccLastCode(?int $statusCode = null):void {
+		$this->occLastCode = $statusCode;
 	}
 
 	/**
@@ -1027,8 +1043,8 @@ class FeatureContext extends BehatVariablesContext {
 	 *
 	 * @return int exit status code of the last occ command
 	 */
-	public function getExitStatusCodeOfOccCommand():int {
-		return $this->lastCode;
+	public function getExitStatusCodeOfOccCommand():?int {
+		return $this->occLastCode;
 	}
 
 	/**
@@ -2370,6 +2386,8 @@ class FeatureContext extends BehatVariablesContext {
 			return $this->alternateAdminPassword;
 		} elseif ($functionalPassword === "%public%") {
 			return $this->publicLinkSharePassword;
+		} elseif ($functionalPassword === "%remove%") {
+			return "";
 		} else {
 			return $functionalPassword;
 		}
@@ -2793,13 +2811,13 @@ class FeatureContext extends BehatVariablesContext {
 	}
 
 	/**
-	 * send request to read a server file
+	 * send request to read a server file for core
 	 *
 	 * @param string $path
 	 *
 	 * @return void
 	 */
-	public function readFileInServerRoot(string $path):void {
+	public function readFileInServerRootForCore(string $path):void {
 		$response = OcsApiHelper::sendRequest(
 			$this->getBaseUrl(),
 			$this->getAdminUsername(),
@@ -2809,6 +2827,23 @@ class FeatureContext extends BehatVariablesContext {
 			$this->getStepLineRef()
 		);
 		$this->setResponse($response);
+	}
+
+	/**
+	 * read a server file for ocis
+	 *
+	 * @param string $path
+	 *
+	 * @return string
+	 * @throws Exception
+	 */
+	public function readFileInServerRootForOCIS(string $path):string {
+		$pathToOcis = \getenv("PATH_TO_OCIS");
+		$targetFile = \rtrim($pathToOcis, "/") . "/" . "services/web/assets" . "/" . ltrim($path, '/');
+		if (!\file_exists($targetFile)) {
+			throw new Exception('Target File ' . $targetFile . ' could not be found');
+		}
+		return \file_get_contents($targetFile);
 	}
 
 	/**
@@ -2880,19 +2915,15 @@ class FeatureContext extends BehatVariablesContext {
 	 * @throws Exception
 	 */
 	public function theFileWithContentShouldExistInTheServerRoot(string $path, string $content):void {
-		$this->readFileInServerRoot($path);
-		Assert::assertSame(
-			200,
-			$this->getResponse()->getStatusCode(),
-			"Failed to read the file $path"
-		);
-		$fileContent = HttpRequestHelper::getResponseXml(
-			$this->getResponse(),
-			__METHOD__
-		);
-		$fileContent = (string) $fileContent->data->element->contentUrlEncoded;
-		$fileContent = \urldecode($fileContent);
-
+		if (OcisHelper::isTestingOnOcis()) {
+			$fileContent = $this->readFileInServerRootForOCIS($path);
+		} else {
+			$this->readFileInServerRootForCore($path);
+			$this->theHTTPStatusCodeShouldBe(200, 'Failed to read the file $path');
+			$fileContent = $this->getResponseXml();
+			$fileContent = (string) $fileContent->data->element->contentUrlEncoded;
+			$fileContent = \urldecode($fileContent);
+		}
 		Assert::assertSame(
 			$content,
 			$fileContent,
@@ -2921,7 +2952,7 @@ class FeatureContext extends BehatVariablesContext {
 	 * @return void
 	 */
 	public function theFileShouldNotExistInTheServerRoot(string $path):void {
-		$this->readFileInServerRoot($path);
+		$this->readFileInServerRootForCore($path);
 		Assert::assertSame(
 			404,
 			$this->getResponse()->getStatusCode(),
@@ -3669,6 +3700,17 @@ class FeatureContext extends BehatVariablesContext {
 	}
 
 	/**
+	 * @AfterScenario
+	 *
+	 * @return void
+	 */
+	public function deleteAllResourceCreatedByAdmin():void {
+		foreach ($this->adminResources as $resource) {
+			$this->userDeletesFile("admin", $resource);
+		}
+	}
+
+	/**
 	 * deletes all created storages
 	 *
 	 * @return void
@@ -4096,8 +4138,8 @@ class FeatureContext extends BehatVariablesContext {
 		);
 		$this->lastStdOut = $return['stdOut'];
 		$this->lastStdErr = $return['stdErr'];
-		$this->lastCode = (int) $return['code'];
-		return $this->lastCode;
+		$occStatusCode = (int) $return['code'];
+		return $occStatusCode;
 	}
 
 	/**
@@ -4135,7 +4177,7 @@ class FeatureContext extends BehatVariablesContext {
 		Assert::assertArrayHasKey('code', $result);
 		Assert::assertArrayHasKey('stdOut', $result);
 		Assert::assertArrayHasKey('stdErr', $result);
-		$this->lastCode = (int) $result['code'];
+		$this->occLastCode = (int) $result['code'];
 		$this->lastStdOut = $result['stdOut'];
 		$this->lastStdErr = $result['stdErr'];
 	}

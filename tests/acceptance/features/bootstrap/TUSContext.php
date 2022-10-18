@@ -131,6 +131,7 @@ class TUSContext implements Context {
 				$data
 			)
 		);
+		WebDavHelper::$SPACE_ID_FROM_OCIS = '';
 	}
 
 	/**
@@ -193,9 +194,10 @@ class TUSContext implements Context {
 				$user,
 				$this->featureContext->getDavPathVersion(),
 				"files",
-				$this->featureContext->getPersonalSpaceIdForUser($user)
+				WebDavHelper::$SPACE_ID_FROM_OCIS ? WebDavHelper::$SPACE_ID_FROM_OCIS : $this->featureContext->getPersonalSpaceIdForUser($user)
 			)
 		);
+		WebDavHelper::$SPACE_ID_FROM_OCIS = '';
 		$client->setMetadata($uploadMetadata);
 		$sourceFile = $this->featureContext->acceptanceTestsDirLocation() . $source;
 		$client->setKey((string)rand())->file($sourceFile, $destination);

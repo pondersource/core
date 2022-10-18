@@ -9,7 +9,10 @@
     "Apps" : "Apps",
     "General" : "Allgemein",
     "Search" : "Suche",
+    "%s shared »%s« with you" : "%s hat „%s“ mit Dir geteilt",
+    "%s via %s" : "%s durch %s",
     "Settings" : "Einstellungen",
-    "Users" : "Benutzer"
+    "Users" : "Benutzer",
+    "\"%s\" is locked" : "\"%s\" ist gesperrt"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

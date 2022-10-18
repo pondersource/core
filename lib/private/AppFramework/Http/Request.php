@@ -610,6 +610,10 @@ class Request implements \ArrayAccess, \Countable, IRequest {
 	 */
 	public function getRequestUri() {
 		$uri = isset($this->server['REQUEST_URI']) ? $this->server['REQUEST_URI'] : '';
+		// remove too many leading slashes - can be caused by reverse proxy configuration
+		if (\strpos($uri, '/') === 0) {
+			$uri = '/' . \ltrim($uri, '/');
+		}
 		if ($this->config->getSystemValue('overwritewebroot') !== '' && $this->isOverwriteCondition()) {
 			$uri = $this->getScriptName() . \substr($uri, \strlen($this->server['SCRIPT_NAME']));
 		} else {
@@ -689,15 +693,13 @@ class Request implements \ArrayAccess, \Countable, IRequest {
 		}
 
 		$pathInfo = $this->getRawPathInfo();
-		// following is taken from \Sabre\HTTP\URLUtil::decodePathSegment
 		$pathInfo = \rawurldecode($pathInfo);
 		$encoding = \mb_detect_encoding($pathInfo, ['UTF-8', 'ISO-8859-1']);
 
 		switch ($encoding) {
 			case 'ISO-8859-1':
-				$pathInfo = \utf8_encode($pathInfo);
+				$pathInfo = \mb_convert_encoding($pathInfo, 'UTF-8', $encoding);
 		}
-		// end copy
 
 		return $pathInfo;
 	}

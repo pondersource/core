@@ -562,6 +562,13 @@ $CONFIG = [
 'proxy' => '',
 
 /**
+ * Define a list of hostnames that won't be proxied.
+ * This option only applies if the `proxy` option is used
+ * Example: `['specific.hostname.com', '.sub.domain.com']`.
+ */
+'proxy_ignore' => [],
+
+/**
  * Define proxy authentication
  * The optional authentication for the proxy to use to connect to the internet.
  * The format is: `username:password`.
@@ -698,6 +705,13 @@ $CONFIG = [
 'versions_retention_obligation' => 'auto',
 
 /**
+ * Save and display the author of each version of uploaded and edited files.
+ *
+ * WARNING: This does not work for S3 storage backends.
+ */
+'file_storage.save_version_author' => false,
+
+/**
  * ownCloud Verifications
  *
  * ownCloud performs several verification checks. There are two options,
@@ -744,11 +758,15 @@ $CONFIG = [
 
 /**
  * Define ownCloud operation modes
- * This defines the mode of operations. The default value is 'single-instance'
- * which means that ownCloud is running on a single node, which might be the
+ * This defines the mode of operations. The default value is `single-instance`
+ * which means, that ownCloud is running on a single node, which might be the
  * most common operations mode. The only other possible value for now is
- * 'clustered-instance' which means that ownCloud is running on at least 2
- * nodes. The mode of operations has various impact on the behavior of ownCloud.
+ * `clustered-instance` which means, that ownCloud is running on at least 2
+ * nodes. The mode of operations has various impacts on the behavior of ownCloud.
+ * The primary impact is, that clustered instances won't download apps from the
+ * marketplace and install in one server. Instead the admin has to ensure that
+ * this happens manually on all servers. The same applies to config.php configuration
+ * settings done via `occ`.
  */
 'operation.mode' => 'single-instance',
 
@@ -1246,10 +1264,10 @@ $CONFIG = [
 
 /**
  * Define the DAV chunk base directory
- * Location of the chunk folder, defaults to `data/$user/uploads` where
- * `$user` is the current user. When specified, the format will change to
- * `$dav.chunk_base_dir/$user` where `$dav.chunk_base_dir` is the configured
- * cache directory and `$user` is the user.
+ * Location of the chunk folder, defaults to `<datadirectory>/$user/uploads` where
+ * `$user` is the current user and `datadirectory` is the datadirectory described here.
+ * When specified, the format will change to `$dav.chunk_base_dir/$user` where
+ * `$dav.chunk_base_dir` is the configured cache directory here and `$user` is the user.
  */
 'dav.chunk_base_dir' => '',
 
@@ -1283,11 +1301,6 @@ $CONFIG = [
  * quick action will not be displayed!
  */
 'sharing.showPublicLinkQuickAction' => false,
-
-/**
- * Save and display version of uploaded and edited files.
- */
-'file_storage.save_version_author' => false,
 
 /**
  * All other configuration options
@@ -1665,6 +1678,8 @@ $CONFIG = [
  * WARNING:
  *    Be warned that, if you set this to `true`, exceptions display
  *    stack traces on the web interface, *including passwords*, — **in plain text!**.
+ *    Furthermore the content-disposition header will be lost and thus files will be
+ *    displayed in the browser rather than downloaded.
  *    We strongly encourage you never to use it in production.
  */
 'debug' => false,

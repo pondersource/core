@@ -27,6 +27,7 @@ use GuzzleHttp\Ring\Exception\ConnectException;
 use PHPUnit\Framework\Assert;
 use Psr\Http\Message\ResponseInterface;
 use GuzzleHttp\Stream\StreamInterface;
+use TestHelpers\OcisHelper;
 use TestHelpers\OcsApiHelper;
 use TestHelpers\SetupHelper;
 use TestHelpers\UploadHelper;
@@ -91,6 +92,16 @@ trait WebDav {
 	 * @var array
 	 */
 	private $responseXml = [];
+
+	/**
+	 * add resource created by admin in an array
+	 * This array is used while cleaning up the resource created by admin during test run
+	 * As of now it tracks only for (files|folder) creation
+	 * This can be expanded and modified to track other actions like (upload, deleted ..)
+	 *
+	 * @var array
+	 */
+	private $adminResources = [];
 
 	/**
 	 * response content parsed into a SimpleXMLElement
@@ -323,7 +334,7 @@ trait WebDav {
 	public function getFullDavFilesPath(string $user):string {
 		$spaceId = null;
 		if ($this->getDavPathVersion() === WebDavHelper::DAV_VERSION_SPACES) {
-			$spaceId = WebDavHelper::getPersonalSpaceIdForUser(
+			$spaceId = (WebDavHelper::$SPACE_ID_FROM_OCIS) ? WebDavHelper::$SPACE_ID_FROM_OCIS : WebDavHelper::getPersonalSpaceIdForUser(
 				$this->getBaseUrl(),
 				$user,
 				$this->getPasswordForUser($user),
@@ -1146,17 +1157,44 @@ trait WebDav {
 	 * @return void
 	 */
 	public function downloadedContentShouldBe(string $content):void {
+		$this->checkDownloadedContentMatches($content);
+	}
+
+	/**
+	 * @param string $expectedContent
+	 * @param string $extraErrorText
+	 *
+	 * @return void
+	 */
+	public function checkDownloadedContentMatches(
+		string $expectedContent,
+		string $extraErrorText = ""
+	):void {
 		$actualContent = (string) $this->response->getBody();
 		// For this test we really care about the content.
 		// A separate "Then" step can specifically check the HTTP status.
 		// But if the content is wrong (e.g. empty) then it is useful to
 		// report the HTTP status to give some clue what might be the problem.
 		$actualStatus = $this->response->getStatusCode();
+		if ($extraErrorText !== "") {
+			$extraErrorText .= "\n";
+		}
 		Assert::assertEquals(
-			$content,
+			$expectedContent,
 			$actualContent,
-			"The downloaded content was expected to be '$content', but actually is '$actualContent'. HTTP status was $actualStatus"
+			$extraErrorText . "The content was expected to be '$expectedContent', but actually is '$actualContent'. HTTP status was $actualStatus"
 		);
+	}
+
+	/**
+	 * @Then the content in the response should match the following content:
+	 *
+	 * @param PyStringNode $content
+	 *
+	 * @return void
+	 */
+	public function theContentInTheResponseShouldMatchTheFollowingContent(PyStringNode $content): void {
+		$this->checkDownloadedContentMatches($content->getRaw());
 	}
 
 	/**
@@ -3691,6 +3729,31 @@ trait WebDav {
 	}
 
 	/**
+	 * @Given admin has created folder :destination
+	 *
+	 * @param string $destination
+	 *
+	 * @return void
+	 * @throws JsonException
+	 * @throws GuzzleException
+	 */
+	public function adminHasCreatedFolder(string $destination):void {
+		$admin = $this->getAdminUsername();
+		Assert::assertEquals(
+			"admin",
+			$admin,
+			__METHOD__ . "The provided user is not admin but '" . $admin . "'"
+		);
+		$this->userCreatesFolder($admin, $destination);
+		$this->theHTTPStatusCodeShouldBe(
+			["201", "204"],
+			"HTTP status code was not 201 or 204 while trying to create folder '$destination' for admin '$admin'"
+		);
+		$this->adminResources[] = $destination;
+		$this->emptyLastHTTPStatusCodesArray();
+	}
+
+	/**
 	 * @Given /^user "([^"]*)" has created the following folders$/
 	 *
 	 * @param string $user
@@ -4865,23 +4928,29 @@ trait WebDav {
 	 * @param string $shouldOrNot (not|)
 	 * @param TableNode $expectedFiles
 	 * @param string|null $user
+	 * @param string|null $method
+	 * @param string|null $folderpath
 	 *
 	 * @return void
-	 * @throws Exception
+	 * @throws GuzzleException
 	 */
 	public function propfindResultShouldContainEntries(
 		string $shouldOrNot,
 		TableNode $expectedFiles,
-		?string $user = null
+		?string $user = null,
+		?string $method = 'REPORT',
+		?string $folderpath = ''
 	):void {
 		$this->verifyTableNodeColumnsCount($expectedFiles, 1);
 		$elementRows = $expectedFiles->getRows();
 		$should = ($shouldOrNot !== "not");
-
 		foreach ($elementRows as $expectedFile) {
 			$fileFound = $this->findEntryFromPropfindResponse(
 				$expectedFile[0],
-				$user
+				$user,
+				$method,
+				"files",
+				$folderpath
 			);
 			if ($should) {
 				Assert::assertNotEmpty(
@@ -5052,7 +5121,7 @@ trait WebDav {
 			},
 			$elementRows
 		);
-		$resultEntries = $this->findEntryFromPropfindResponse(null, $user);
+		$resultEntries = $this->findEntryFromPropfindResponse(null, $user, "REPORT");
 		foreach ($resultEntries as $resultEntry) {
 			Assert::assertContains($resultEntry, $expectedEntries);
 		}
@@ -5128,7 +5197,7 @@ trait WebDav {
 		$type = $this->usingOldDavPath ? "public-files" : "public-files-new";
 		foreach ($table->getHash() as $row) {
 			$path = $this->substituteInLineCodes($row['name']);
-			$res = $this->findEntryFromPropfindResponse($path, $user, $type);
+			$res = $this->findEntryFromPropfindResponse($path, $user, null, $type);
 			Assert::assertNotFalse($res, "expected $path to be in DAV response but was not found");
 		}
 	}
@@ -5147,7 +5216,7 @@ trait WebDav {
 		$type = $this->usingOldDavPath ? "public-files" : "public-files-new";
 		foreach ($table->getHash() as $row) {
 			$path = $this->substituteInLineCodes($row['name']);
-			$res = $this->findEntryFromPropfindResponse($path, $user, $type);
+			$res = $this->findEntryFromPropfindResponse($path, $user, null, $type);
 			Assert::assertFalse($res, "expected $path to not be in DAV response but was found");
 		}
 	}
@@ -5249,34 +5318,54 @@ trait WebDav {
 	}
 
 	/**
+	 * Escapes the given string for
+	 * 1. Space --> %20
+	 * 2. Opening Small Bracket --> %28
+	 * 3. Closing Small Bracket --> %29
+	 *
+	 * @param string $path - File path to parse
+	 *
+	 * @return string
+	 */
+	public function escapePath(string $path): string {
+		return \str_replace([" ", "(", ")"], ["%20", "%28", "%29"], $path);
+	}
+
+	/**
 	 * parses a PROPFIND response from $this->response into xml
 	 * and returns found search results if found else returns false
 	 *
-	 * @param string $entryNameToSearch
+	 * @param string|null $entryNameToSearch
 	 * @param string|null $user
+	 * @param string|null $method
 	 * @param string $type
+	 * @param string $folderPath
 	 *
 	 * @return string|array|boolean
+	 *
 	 * string if $entryNameToSearch is given and is found
 	 * array if $entryNameToSearch is not given
 	 * boolean false if $entryNameToSearch is given and is not found
-	 * @throws Exception
+	 *
+	 * @throws GuzzleException
 	 */
 	public function findEntryFromPropfindResponse(
 		?string $entryNameToSearch = null,
 		?string $user = null,
-		string $type = "files"
+		?string $method = null,
+		string $type = "files",
+		string $folderPath = ''
 	) {
 		$trimmedEntryNameToSearch = '';
 		// trim any leading "/" passed by the caller, we can just match the "raw" name
 		if ($entryNameToSearch != null) {
 			$trimmedEntryNameToSearch = \trim($entryNameToSearch, "/");
 		}
-
+		// url encode for spaces and brackets that may appear in the filePath
+		$folderPath = $this->escapePath($folderPath);
 		// topWebDavPath should be something like /remote.php/webdav/ or
 		// /remote.php/dav/files/alice/
-		$topWebDavPath = "/" . $this->getFullDavFilesPath($user) . "/";
-
+		$topWebDavPath = "/" . $this->getFullDavFilesPath($user) . "/" . $folderPath;
 		switch ($type) {
 			case "files":
 				break;
@@ -5293,6 +5382,19 @@ trait WebDav {
 		if ($multistatusResults !== null) {
 			foreach ($multistatusResults as $multistatusResult) {
 				$entryPath = $multistatusResult['value'][0]['value'];
+				if (OcisHelper::isTestingOnOcis() && $method === "REPORT") {
+					if ($entryNameToSearch !== null && str_ends_with($entryPath, $entryNameToSearch)) {
+						return $multistatusResult;
+					} else {
+						$spaceId = (WebDavHelper::$SPACE_ID_FROM_OCIS) ? WebDavHelper::$SPACE_ID_FROM_OCIS : WebDavHelper::getPersonalSpaceIdForUser(
+							$this->getBaseUrl(),
+							$user,
+							$this->getPasswordForUser($user),
+							$this->getStepLineRef()
+						);
+						$topWebDavPath = "/remote.php/dav/spaces/" . $spaceId . "/" . $folderPath;
+					}
+				}
 				$entryName = \str_replace($topWebDavPath, "", $entryPath);
 				$entryName = \rawurldecode($entryName);
 				$entryName = \trim($entryName, "/");

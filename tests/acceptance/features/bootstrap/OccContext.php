@@ -23,6 +23,7 @@
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\TableNode;
+use GuzzleHttp\Exception\GuzzleException;
 use PHPUnit\Framework\Assert;
 use TestHelpers\OcisHelper;
 use TestHelpers\SetupHelper;
@@ -126,7 +127,9 @@ class OccContext implements Context {
 	 * @throws Exception
 	 */
 	public function invokingTheCommand(string $cmd):void {
-		$this->featureContext->runOcc([$cmd]);
+		$this->featureContext->setOccLastCode(
+			$this->featureContext->runOcc([$cmd])
+		);
 	}
 
 	/**
@@ -156,11 +159,13 @@ class OccContext implements Context {
 		string $cmd,
 		string $envVariableName,
 		string $envVariableValue
-	):void {
+	):int {
 		$args = [$cmd];
-		$this->featureContext->runOccWithEnvVariables(
-			$args,
-			[$envVariableName => $envVariableValue]
+		return(
+			$this->featureContext->runOccWithEnvVariables(
+				$args,
+				[$envVariableName => $envVariableValue]
+			)
 		);
 	}
 
@@ -728,10 +733,12 @@ class OccContext implements Context {
 		string $envVariableName,
 		string $envVariableValue
 	):void {
-		$this->invokingTheCommandWithEnvVariable(
-			$cmd,
-			$envVariableName,
-			$envVariableValue
+		$this->featureContext->setOccLastCode(
+			$this->invokingTheCommandWithEnvVariable(
+				$cmd,
+				$envVariableName,
+				$envVariableValue
+			)
 		);
 	}
 
@@ -830,6 +837,9 @@ class OccContext implements Context {
 				$this->featureContext->getStdErrOfOccCommand() . "'\n";
 			if (!empty($exceptions)) {
 				$msg .= ' Exceptions: ' . \implode(', ', $exceptions);
+			}
+			if ($exitStatusCode === null) {
+				$msg = "The occ command did not run ";
 			}
 			throw new Exception($msg);
 		} elseif (!empty($exceptions)) {
@@ -1490,13 +1500,15 @@ class OccContext implements Context {
 			$action = "$action-group";
 		}
 		$mountId = $this->featureContext->getStorageId($mountName);
-		$this->featureContext->runOcc(
-			[
-				'files_external:applicable',
-				$mountId,
-				"$action ",
-				"$userOrGroupName"
-			]
+		$this->featureContext->setOccLastCode(
+			$this->featureContext->runOcc(
+				[
+					'files_external:applicable',
+					$mountId,
+					"$action ",
+					"$userOrGroupName"
+				]
+			)
 		);
 	}
 
@@ -3212,6 +3224,7 @@ class OccContext implements Context {
 	 *
 	 * @return void
 	 * @throws Exception
+	 * @throws GuzzleException
 	 */
 	public function theAdministratorHasAddedGroupToTheExcludeGroupFromSharingList(string $groups):void {
 		$groups = \explode(',', \trim($groups));
@@ -3392,7 +3405,9 @@ class OccContext implements Context {
 			$extMntSettings['storage_backend'],
 			$extMntSettings['authentication_backend']
 		];
-		$this->featureContext->runOcc($args);
+		$this->featureContext->setOccLastCode(
+			$this->featureContext->runOcc($args)
+		);
 		// add to array of created storageIds
 		$commandOutput = $this->featureContext->getStdOutOfOccCommand();
 		$mountId = \preg_replace('/\D/', '', $commandOutput);
@@ -3632,7 +3647,7 @@ class OccContext implements Context {
 	 * @param string $value
 	 *
 	 * @return void
-	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws GuzzleException
 	 */
 	public function theSystemConfigKeyShouldBeSetAs(string $value):void {
 		$actual_value = SetupHelper::getSystemConfigValue(
@@ -3659,7 +3674,9 @@ class OccContext implements Context {
 	 */
 	public function theAdministratorListsMigrationStatusOfApp(string $app):void {
 		$this->featureContext->setStdOutOfOccCommand("");
-		$this->featureContext->runOcc(['migrations:status', $app]);
+		$this->featureContext->setOccLastCode(
+			$this->featureContext->runOcc(['migrations:status', $app])
+		);
 	}
 
 	/**

@@ -23,9 +23,15 @@ class GoogleCloudPaymentsResellerSubscriptionV1SubscriptionLineItem extends \Goo
   /**
    * @var string
    */
+  public $description;
+  /**
+   * @var string
+   */
   public $lineItemFreeTrialEndTime;
   protected $lineItemPromotionSpecsType = GoogleCloudPaymentsResellerSubscriptionV1SubscriptionPromotionSpec::class;
   protected $lineItemPromotionSpecsDataType = 'array';
+  protected $oneTimeRecurrenceDetailsType = GoogleCloudPaymentsResellerSubscriptionV1SubscriptionLineItemOneTimeRecurrenceDetails::class;
+  protected $oneTimeRecurrenceDetailsDataType = '';
   /**
    * @var string
    */
@@ -33,8 +39,26 @@ class GoogleCloudPaymentsResellerSubscriptionV1SubscriptionLineItem extends \Goo
   /**
    * @var string
    */
+  public $recurrenceType;
+  /**
+   * @var string
+   */
   public $state;
 
+  /**
+   * @param string
+   */
+  public function setDescription($description)
+  {
+    $this->description = $description;
+  }
+  /**
+   * @return string
+   */
+  public function getDescription()
+  {
+    return $this->description;
+  }
   /**
    * @param string
    */
@@ -64,6 +88,20 @@ class GoogleCloudPaymentsResellerSubscriptionV1SubscriptionLineItem extends \Goo
     return $this->lineItemPromotionSpecs;
   }
   /**
+   * @param GoogleCloudPaymentsResellerSubscriptionV1SubscriptionLineItemOneTimeRecurrenceDetails
+   */
+  public function setOneTimeRecurrenceDetails(GoogleCloudPaymentsResellerSubscriptionV1SubscriptionLineItemOneTimeRecurrenceDetails $oneTimeRecurrenceDetails)
+  {
+    $this->oneTimeRecurrenceDetails = $oneTimeRecurrenceDetails;
+  }
+  /**
+   * @return GoogleCloudPaymentsResellerSubscriptionV1SubscriptionLineItemOneTimeRecurrenceDetails
+   */
+  public function getOneTimeRecurrenceDetails()
+  {
+    return $this->oneTimeRecurrenceDetails;
+  }
+  /**
    * @param string
    */
   public function setProduct($product)
@@ -76,6 +114,20 @@ class GoogleCloudPaymentsResellerSubscriptionV1SubscriptionLineItem extends \Goo
   public function getProduct()
   {
     return $this->product;
+  }
+  /**
+   * @param string
+   */
+  public function setRecurrenceType($recurrenceType)
+  {
+    $this->recurrenceType = $recurrenceType;
+  }
+  /**
+   * @return string
+   */
+  public function getRecurrenceType()
+  {
+    return $this->recurrenceType;
   }
   /**
    * @param string

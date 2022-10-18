@@ -23,6 +23,10 @@ class NfsShare extends \Google\Collection
   protected $allowedClientsType = AllowedClient::class;
   protected $allowedClientsDataType = 'array';
   /**
+   * @var string
+   */
+  public $id;
+  /**
    * @var string[]
    */
   public $labels;
@@ -34,6 +38,10 @@ class NfsShare extends \Google\Collection
    * @var string
    */
   public $nfsShareId;
+  /**
+   * @var string
+   */
+  public $requestedSizeGib;
   /**
    * @var string
    */
@@ -56,6 +64,20 @@ class NfsShare extends \Google\Collection
   public function getAllowedClients()
   {
     return $this->allowedClients;
+  }
+  /**
+   * @param string
+   */
+  public function setId($id)
+  {
+    $this->id = $id;
+  }
+  /**
+   * @return string
+   */
+  public function getId()
+  {
+    return $this->id;
   }
   /**
    * @param string[]
@@ -98,6 +120,20 @@ class NfsShare extends \Google\Collection
   public function getNfsShareId()
   {
     return $this->nfsShareId;
+  }
+  /**
+   * @param string
+   */
+  public function setRequestedSizeGib($requestedSizeGib)
+  {
+    $this->requestedSizeGib = $requestedSizeGib;
+  }
+  /**
+   * @return string
+   */
+  public function getRequestedSizeGib()
+  {
+    return $this->requestedSizeGib;
   }
   /**
    * @param string

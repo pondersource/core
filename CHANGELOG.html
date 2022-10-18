@@ -2,20 +2,123 @@
 <h2 id="unreleased" class="version"> Changelog for ownCloud Core [unreleased] (UNRELEASED)</h2>
     <p>The following sections list the changes in ownCloud core unreleased relevant to ownCloud admins and users.</p>
     <p>
-    <a href="https://github.com/owncloud/core/compare/v10.10.0...master">Full list of changes in unreleased </a>
+    <a href="https://github.com/owncloud/core/compare/v10.11.0...master">Full list of changes in unreleased </a>
     </p>
     <h3 id="unreleased-summary">Summary</h3>
     <ul class="summary">
+        <li class="type-bugfix changelog-item">Bugfix - Skip public links when updating permissions of share's children: <a href="https://github.com/owncloud/core/pull/40420">#40420</a></li>
+        <li class="type-change changelog-item">Change - Allow specifying available space for objectstorages: <a href="https://github.com/owncloud/core/pull/40192">#40192</a></li>
+        <li class="type-change changelog-item">Change - Drop PHP 7.3 support across the platform: <a href="https://github.com/owncloud/core/pull/40394">#40394</a></li>
+        <li class="type-change changelog-item">Change - Test indirect resource existence: <a href="https://github.com/owncloud/core/pull/40406">#40406</a></li>
+        <li class="type-change changelog-item">Change - Detect mime types of hidden files: <a href="https://github.com/owncloud/core/pull/40427">#40427</a></li>
+        <li class="type-change changelog-item">Change - Update PHP dependencies: <a href="https://github.com/owncloud/core/pull/40337">#40337</a></li>
+        <li class="type-change changelog-item">Change - Update Symfony components: <a href="https://github.com/owncloud/core/pull/40337">#40337</a></li>
+    </ul>
+    <h3 id="unreleased-details">Details</h3>
+    <ul class="details">
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Skip public links when updating permissions of share's children: <a href="https://github.com/owncloud/core/pull/40420">#40420</a></p>
+            <p>Currently, updates to permissions of a share are wrongly propagated to public links children.
+   This has now been fixed and public links are being skipped.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40420<br></p>
+        </li>
+        <li class="type-change changelog-item">
+            <p>Change - Allow specifying available space for objectstorages: <a href="https://github.com/owncloud/core/pull/40192">#40192</a></p>
+            <p>Before this change, objectstorages were reporting only infinite storage space. This could
+   have caused problems in other apps that rely on this storage method, e.g. metrics app that
+   monitors available space
+            </p>
+            <p>https://github.com/owncloud/enterprise/issues/5384<br>
+            </p>
+            <p>https://github.com/owncloud/core/pull/40192<br></p>
+        </li>
+        <li class="type-change changelog-item">
+            <p>Change - Drop PHP 7.3 support across the platform: <a href="https://github.com/owncloud/core/pull/40394">#40394</a></p>
+            <p>Support for security fixes for PHP 7.3 ended in Dec 2021 ownCloud core no longer supports PHP
+   7.3. Ensure that you are using PHP 7.4.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40394<br></p>
+            <p>https://www.php.net/supported-versions.php<br></p>
+        </li>
+        <li class="type-change changelog-item">
+            <p>Change - Test indirect resource existence: <a href="https://github.com/owncloud/core/pull/40406">#40406</a></p>
+            <p>We now expect a not found error instead of permission denied error for some trash interactions.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40406<br></p>
+        </li>
+        <li class="type-change changelog-item">
+            <p>Change - Detect mime types of hidden files: <a href="https://github.com/owncloud/core/pull/40427">#40427</a></p>
+            <p>Mime type of hidden files are now properly detected.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40427<br></p>
+        </li>
+        <li class="type-change changelog-item">
+            <p>Change - Update PHP dependencies: <a href="https://github.com/owncloud/core/pull/40337">#40337</a></p>
+            <p>The following have been updated: - doctrine/event-manager (1.1.2 to 1.2.0) -
+   guzzlehttp/guzzle (7.4.5 to 7.5.0) - guzzlehttp/promises (1.5.1 to 1.5.2) -
+   guzzlehttp/psr7 (2.4.0 to 2.4.1) - phpseclib/phpseclib (3.0.14 to 3.0.16) -
+   laminas/laminas-filter (2.12.0 to 2.22.0) - laminas/laminas-inputfilter (2.12.1 to
+   2.21.0) - laminas/laminas-servicemanager (3.7.0 to 3.17.0) - laminas/laminas-stdlib
+   (3.11.0 to 3.13.0) - laminas/laminas-validator (2.19.0 to 2.25.0) - league/flysystem
+   (1.1.9 to 1.1.10) - psr/container (1.1.1 to 1.1.2) - sabre/uri (2.2.3 to 2.3.2) -
+   sabre/vobject (4.5.0 to 4.5.1)The following have been updated in apps/files_external/3rdparty: - guzzlehttp/psr7 (2.4.0
+   to 2.4.1)
+            </p>
+            <p>https://github.com/owncloud/core/pull/40337<br>https://github.com/owncloud/core/pull/40394<br>https://github.com/owncloud/core/pull/40410<br>https://github.com/owncloud/core/pull/40424<br></p>
+        </li>
+        <li class="type-change changelog-item">
+            <p>Change - Update Symfony components: <a href="https://github.com/owncloud/core/pull/40337">#40337</a></p>
+            <p>The following Symfony components have been updated to: - console 4.4.47 - translation 4.4.47
+            </p>
+            <p>https://github.com/owncloud/core/pull/40337<br>https://github.com/owncloud/core/pull/40424<br></p>
+            <p>https://symfony.com/blog/symfony-4-4-45-released<br>https://symfony.com/blog/symfony-4-4-47-released<br></p>
+        </li>
+    </ul>
+    <h2 id="10.11.0" class="version"> Changelog for ownCloud Core [10.11.0] (2022-08-23)</h2>
+    <p>The following sections list the changes in ownCloud core 10.11.0 relevant to ownCloud admins and users.</p>
+    <p>
+    <a href="https://github.com/owncloud/core/compare/v10.10.0...v10.11.0">Full list of changes in 10.11.0</a>
+    </p>
+    <h3 id="10.11.0-summary">Summary</h3>
+    <ul class="summary">
         <li class="type-bugfix changelog-item">Bugfix - Trigger the right event when the filecache is updated: <a href="https://github.com/owncloud/core/pull/39844">#39844</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Replace userid with username in login form: <a href="https://github.com/owncloud/core/pull/39870">#39870</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Quota can be exceeded by user: <a href="https://github.com/owncloud/core/issues/40140">#40140</a></li>
         <li class="type-bugfix changelog-item">Bugfix - List apps only once: <a href="https://github.com/owncloud/core/issues/39930">#39930</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Do not crash while running the cleanup-chunks command: <a href="https://github.com/owncloud/core/pull/40000">#40000</a></li>
         <li class="type-bugfix changelog-item">Bugfix - Get file size using cURL on Ubuntu 20.04 and 22.04: <a href="https://github.com/owncloud/core/pull/40065">#40065</a></li>
         <li class="type-bugfix changelog-item">Bugfix - Filter sensitive data in log for Session::createSessionToken: <a href="https://github.com/owncloud/core/pull/40066">#40066</a></li>
         <li class="type-bugfix changelog-item">Bugfix - Correct Executed Unavailable Migrations and New Migrations: <a href="https://github.com/owncloud/core/issues/40084">#40084</a></li>
-        <li class="type-change changelog-item">Change - Update PHP dependencies: <a href="https://github.com/owncloud/core/pull/40092">#40092</a></li>
-        <li class="type-change changelog-item">Change - Update Symfony components: <a href="https://github.com/owncloud/core/pull/40111">#40111</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Ensure user's directory is always present: <a href="https://github.com/owncloud/core/pull/40091">#40091</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Application selection menu now appears on shared folders: <a href="https://github.com/owncloud/core/pull/40143">#40143</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Do not invalidate app tokens when no LDAP connection: <a href="https://github.com/owncloud/core/pull/40152">#40152</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Convert from utf8_encode to mb_convert_encoding: <a href="https://github.com/owncloud/core/pull/40158">#40158</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Apps requiring SAML/SSO session now load correctly at first page: <a href="https://github.com/owncloud/core/pull/40161">#40161</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Display error message when a group cannot be created: <a href="https://github.com/owncloud/core/issues/40162">#40162</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Error responses to add group API requests are inconsistent: <a href="https://github.com/owncloud/core/issues/40164">#40164</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Handle exception when adding mount to existing cache or lock: <a href="https://github.com/owncloud/core/pull/40192">#40192</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - CORS on WebDAV is not working: <a href="https://github.com/owncloud/core/pull/40204">#40204</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Handle extra slashes at start of URI path: <a href="https://github.com/owncloud/core/pull/40216">#40216</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Use group's displayname in the user's profile and user list: <a href="https://github.com/owncloud/core/pull/40229">#40229</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Init encryption module before calculating unencrypted block-size: <a href="https://github.com/owncloud/core/pull/40240">#40240</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Fix personal settings display for apps which are not whitelisted: <a href="https://github.com/owncloud/core/pull/40257">#40257</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Only call getGroupDetails when the group exists: <a href="https://github.com/owncloud/core/pull/40261">#40261</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Allow usernames to be case-insensitive with app passwords: <a href="https://github.com/owncloud/core/issues/40119">#40119</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Refactor to not have required params following an optional parameter: <a href="https://github.com/owncloud/core/pull/40303">#40303</a></li>
+        <li class="type-bugfix changelog-item">Bugfix - Prevent expiry for version meta data files: <a href="https://github.com/owncloud/core/pull/40325">#40325</a></li>
+        <li class="type-change changelog-item">Change - Improve visualization of author's comment in the comments section: <a href="https://github.com/owncloud/core/pull/40142">#40142</a></li>
+        <li class="type-change changelog-item">Change - Update PHP dependencies: <a href="https://github.com/owncloud/core/pull/39368">#39368</a></li>
+        <li class="type-change changelog-item">Change - Update Symfony components: <a href="https://github.com/owncloud/core/pull/39368">#39368</a></li>
+        <li class="type-enhancement changelog-item">Enhancement - Add default app setting on a user basis: <a href="https://github.com/owncloud/core/pull/39600">#39600</a></li>
+        <li class="type-enhancement changelog-item">Enhancement - Ignore thumbnails when propagating in home: <a href="https://github.com/owncloud/core/pull/39988">#39988</a></li>
         <li class="type-enhancement changelog-item">Enhancement - Add language prop to /cloud/user and /cloud/users/{userid} endpoint: <a href="https://github.com/owncloud/core/pull/40087">#40087</a></li>
+        <li class="type-enhancement changelog-item">Enhancement - Add additional columns to background job queue status: <a href="https://github.com/owncloud/core/pull/40113">#40113</a></li>
+        <li class="type-enhancement changelog-item">Enhancement - Add config option to bypass the proxy setting by domain: <a href="https://github.com/owncloud/core/pull/40148">#40148</a></li>
+        <li class="type-enhancement changelog-item">Enhancement - Allow sharing with multiple users at once: <a href="https://github.com/owncloud/core/pull/40155">#40155</a></li>
+        <li class="type-enhancement changelog-item">Enhancement - Allow editing of public link shared single files: <a href="https://github.com/owncloud/core/pull/40264">#40264</a></li>
     </ul>
-    <h3 id="unreleased-details">Details</h3>
+    <h3 id="10.11.0-details">Details</h3>
     <ul class="details">
         <li class="type-bugfix changelog-item">
             <p>Bugfix - Trigger the right event when the filecache is updated: <a href="https://github.com/owncloud/core/pull/39844">#39844</a></p>
@@ -25,6 +128,22 @@
             <p>https://github.com/owncloud/core/pull/39844<br></p>
         </li>
         <li class="type-bugfix changelog-item">
+            <p>Bugfix - Replace userid with username in login form: <a href="https://github.com/owncloud/core/pull/39870">#39870</a></p>
+            <p>The login form now replaces a user id with the user name.
+            </p>
+            <p>https://github.com/owncloud/core/pull/39870<br>https://github.com/owncloud/oauth2/pull/286<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Quota can be exceeded by user: <a href="https://github.com/owncloud/core/issues/40140">#40140</a></p>
+            <p>Copying a file in or out of a received share could succeed even if there was not enough storage
+   quota allowed at the target location. This problem has been fixed. Copies will now return 507
+   "Insufficient storage" in this case.
+            </p>
+            <p>https://github.com/owncloud/core/issues/40140<br>
+            </p>
+            <p>https://github.com/owncloud/core/pull/39895<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
             <p>Bugfix - List apps only once: <a href="https://github.com/owncloud/core/issues/39930">#39930</a></p>
             <p>`occ app:list --minimal` could display apps twice in the listing. Each app is now displayed
    only once.
@@ -32,6 +151,14 @@
             <p>https://github.com/owncloud/core/issues/39930<br>
             </p>
             <p>https://github.com/owncloud/core/pull/40081<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Do not crash while running the cleanup-chunks command: <a href="https://github.com/owncloud/core/pull/40000">#40000</a></p>
+            <p>Previously, when you run the cleanup-chunks command, any unhandled exception could crash the
+   command. If this happened, there could be chunks that weren't deleted.Now, the command runs through all the chunks. If some chunks give problems, a message is
+   displayed indicating what error happened in which file.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40000<br></p>
         </li>
         <li class="type-bugfix changelog-item">
             <p>Bugfix - Get file size using cURL on Ubuntu 20.04 and 22.04: <a href="https://github.com/owncloud/core/pull/40065">#40065</a></p>
@@ -54,27 +181,230 @@
             </p>
             <p>https://github.com/owncloud/core/pull/40085<br></p>
         </li>
-        <li class="type-change changelog-item">
-            <p>Change - Update PHP dependencies: <a href="https://github.com/owncloud/core/pull/40092">#40092</a></p>
-            <p>The following have been updated: - doctrine/cache (2.1.1 to 2.2.0) - icewind/streams (0.7.5
-   to 0.7.6) - laminas/laminas-stdlib (3.7.1 to 3.10.1) - laminas/laminas-validator (2.17.0
-   to 2.19.0)The following have been updated in apps/files_external/3rdparty: -
-   google/apiclient-services (0.244.0 to 0.252.0) - google/apiclient (2.12.4 to 2.12.6) -
-   icewind/smb (3.5.2 to 3.5.4) - icewind/streams (0.7.5 to 0.7.6) - monolog/monolog (2.5.0 to
-   2.6.0)
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Ensure user's directory is always present: <a href="https://github.com/owncloud/core/pull/40091">#40091</a></p>
+            <p>There are some scenarios where the user's directory might not be created. This leads to a state
+   where the user can't upload any file, so the admin might need to remove the account and create a
+   new one.While this scenario might still happen, we're now ensuring that the user's directory is
+   created at some point, so the user can upload files into his account at any time.
             </p>
-            <p>https://github.com/owncloud/core/pull/40092<br>https://github.com/owncloud/core/pull/40110<br>https://github.com/owncloud/core/pull/40121<br>https://github.com/owncloud/core/pull/40135<br>https://github.com/owncloud/core/pull/40136<br>https://github.com/owncloud/core/pull/40137<br></p>
+            <p>https://github.com/owncloud/core/pull/40091<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Application selection menu now appears on shared folders: <a href="https://github.com/owncloud/core/pull/40143">#40143</a></p>
+            <p>An app selection menu will appear on public folder links when you click in a file that could be
+   opened with multiple apps. The behavior is the same as in the regular file listing.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40143<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Do not invalidate app tokens when no LDAP connection: <a href="https://github.com/owncloud/core/pull/40152">#40152</a></p>
+            <p>Whenever connection to the LDAP server became unavailable app tokens were getting deleted
+   after some time causing disconnection of connected clients. App tokens are now remaining
+   valid until connection is back.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40152<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Convert from utf8_encode to mb_convert_encoding: <a href="https://github.com/owncloud/core/pull/40158">#40158</a></p>
+            <p>Function `utf8_encode` will be deprecated and removed in future PHP versions. It has been
+   replaced with function mb_convert_encoding.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40158<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Apps requiring SAML/SSO session now load correctly at first page: <a href="https://github.com/owncloud/core/pull/40161">#40161</a></p>
+            <p>Apps that require session to load some content at request start, could not be loaded due to
+   missing SAML/SSO session objects that could only be obtained after the app loaded or at next
+   visited page when that object was correctly persisted. Now, after handling apache backend
+   session, auth success confirmation page is shown that redirects to the owncloud landing page.
+            </p>
+            <p>https://github.com/owncloud/enterprise/issues/4712<br>https://github.com/owncloud/enterprise/issues/5225<br>https://github.com/owncloud/core/issues/31052<br>
+            </p>
+            <p>https://github.com/owncloud/core/pull/40161<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Display error message when a group cannot be created: <a href="https://github.com/owncloud/core/issues/40162">#40162</a></p>
+            <p>If a new group could not be created on the user-management UI, the error message text was not
+   displayed. This problem has been fixed.
+            </p>
+            <p>https://github.com/owncloud/core/issues/40162<br>
+            </p>
+            <p>https://github.com/owncloud/core/pull/40163<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Error responses to add group API requests are inconsistent: <a href="https://github.com/owncloud/core/issues/40164">#40164</a></p>
+            <p>Some response error messages were contained in a `data` structure. Others were not. They have
+   now been made consistent. They are not contained in a `data` structure.
+            </p>
+            <p>https://github.com/owncloud/core/issues/40164<br>
+            </p>
+            <p>https://github.com/owncloud/core/pull/40165<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Handle exception when adding mount to existing cache or lock: <a href="https://github.com/owncloud/core/pull/40192">#40192</a></p>
+            <p>In some cases there are can be multiple parallel requests that could in their logic attempt to
+   create shared file mountpoint for the file or to create lock, e.g. collaboration software.
+   Exception to add cache or lock that already exists is now handled
+            </p>
+            <p>https://github.com/owncloud/enterprise/issues/5198<br>
+            </p>
+            <p>https://github.com/owncloud/core/pull/40192<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - CORS on WebDAV is not working: <a href="https://github.com/owncloud/core/pull/40204">#40204</a></p>
+            <p>The list of allowed domains was not being correctly decoded, resulting in failure to recognise
+   a valid domain, and thus failure to send the relevant CORS headers. The decoding of the domains
+   list has been corrected.
+            </p>
+            <p>https://github.com/owncloud/core/issues/40203<br>
+            </p>
+            <p>https://github.com/owncloud/core/pull/40204<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Handle extra slashes at start of URI path: <a href="https://github.com/owncloud/core/pull/40216">#40216</a></p>
+            <p>If extra slashes were present in a request URI before the path then a 500 server error was
+   returned. For example, https://example.com//remote.php/webdav/file.txtAny extra slashes are now removed and the request works.
+            </p>
+            <p>https://github.com/owncloud/core/issues/34365<br>
+            </p>
+            <p>https://github.com/owncloud/core/pull/40216<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Use group's displayname in the user's profile and user list: <a href="https://github.com/owncloud/core/pull/40229">#40229</a></p>
+            <p>Previously, the group id was being used in both the user's profile and the user list. This hasn't
+   been important because the local groups have matching group id and displayname, the same for
+   ldap groups.Due to recent changes with the ldap app (version 0.17.0), the group id and the displayname could
+   be different, and they'll be different by default in the ldap app.In both the user's profile and the user list, the group id was being used instead of the
+   displayname. This is fixed now, and the displayname will be used as intended.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40229<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Init encryption module before calculating unencrypted block-size: <a href="https://github.com/owncloud/core/pull/40240">#40240</a></p>
+            <p>The un-encrypted blocksize was calculated before initializing the encryption- module. This
+   yields the wrong size after a file-scan if encryption.use_legacy_encoding is set to true in
+   config.php.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40240<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Fix personal settings display for apps which are not whitelisted: <a href="https://github.com/owncloud/core/pull/40257">#40257</a></p>
+            <p>Apps can be disabled or enabled for guests. The personal settings for disabled apps were still
+   being shown to guest users. This problem has been fixed. Only the settings for enabled apps are
+   displayed now.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40257<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Only call getGroupDetails when the group exists: <a href="https://github.com/owncloud/core/pull/40261">#40261</a></p>
+            <p>When getting a group, the getGroupDetails method could be called for a group that does not
+   exist. That is unnecessary and may cause a group backend implementation to log an error. The
+   code has been refactored to avoid this happening.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40261<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Allow usernames to be case-insensitive with app passwords: <a href="https://github.com/owncloud/core/issues/40119">#40119</a></p>
+            <p>When using an app password, the associated username can now be provided in any
+   case-insensitive way in requests. Username "Alice" and "alice" will work the same.
+            </p>
+            <p>https://github.com/owncloud/core/issues/40119<br>
+            </p>
+            <p>https://github.com/owncloud/core/pull/40281<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Refactor to not have required params following an optional parameter: <a href="https://github.com/owncloud/core/pull/40303">#40303</a></p>
+            <p>All required parameters should be listed first in PHP functions. Adjust the code to meet this
+   rule.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40303<br></p>
+        </li>
+        <li class="type-bugfix changelog-item">
+            <p>Bugfix - Prevent expiry for version meta data files: <a href="https://github.com/owncloud/core/pull/40325">#40325</a></p>
+            <p>Version meta data files now get ignored during the expiry process. This fixes the massive
+   amount of error logs being produced during this.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40325<br></p>
         </li>
         <li class="type-change changelog-item">
-            <p>Change - Update Symfony components: <a href="https://github.com/owncloud/core/pull/40111">#40111</a></p>
-            <p>The following Symfony components have been updated to: - event-dispatcher 4.4.42
+            <p>Change - Improve visualization of author's comment in the comments section: <a href="https://github.com/owncloud/core/pull/40142">#40142</a></p>
+            <p>Previously, a long display name for the author's comment could overlap with the "edit" action
+   and the date. Worst case, the comment might not be edited because the "edit" action was below the
+   author's display name, so you might not be able to click the action.Right now, the author's display name won't overlap with the rest of the elements. The display
+   name will be cut if needed, but both the "edit" action and the date will be clearly visible.
             </p>
-            <p>https://github.com/owncloud/core/pull/40111<br></p>
-            <p>https://symfony.com/blog/symfony-4-4-42-released<br></p>
+            <p>https://github.com/owncloud/core/pull/40142<br></p>
+        </li>
+        <li class="type-change changelog-item">
+            <p>Change - Update PHP dependencies: <a href="https://github.com/owncloud/core/pull/39368">#39368</a></p>
+            <p>The following have been updated: - doctrine/cache (2.1.1 to 2.2.0) - doctrine/event-manager
+   (1.1.1 to 1.1.2) - egulias/email-validator (3.1.2 to 3.2.1) - guzzlehttp/guzzle (v5.3.4 to
+   v7.4.5) - icewind/streams (0.7.5 to 0.7.6) - laminas/laminas-stdlib (3.7.1 to 3.11.0) -
+   laminas/laminas-validator (2.17.0 to 2.19.0) - paragonie/constant_time_encoding
+   (v2.5.0 to v2.6.3) - sabre/dav (4.3.1 to 4.4.0) - sabre/http (5.1.3 to 5.1.6) - sabre/uri
+   (2.2.2 to 2.2.3) - sabre/vobject (4.4.1 to 4.5.0) - webmozart/assert (1.10.0 to 1.11.0)The following have been updated in apps/files_external/3rdparty: - firebase/php-jwt
+   (v6.2.0 to v6.3.0) - google/apiclient-services (0.244.0 to 0.259.0) - google/apiclient
+   (2.12.4 to 2.12.6) - guzzlehttp/guzzle (v5.3.4 to v7.4.5) - icewind/smb (3.5.2 to 3.5.4) -
+   icewind/streams (0.7.5 to 0.7.6) - monolog/monolog (2.5.0 to 2.8.0)
+            </p>
+            <p>https://github.com/owncloud/core/pull/39368<br>https://github.com/owncloud/core/pull/40092<br>https://github.com/owncloud/core/pull/40110<br>https://github.com/owncloud/core/pull/40121<br>https://github.com/owncloud/core/pull/40135<br>https://github.com/owncloud/core/pull/40136<br>https://github.com/owncloud/core/pull/40137<br>https://github.com/owncloud/core/pull/40151<br>https://github.com/owncloud/core/pull/40154<br>https://github.com/owncloud/core/pull/40169<br>https://github.com/owncloud/core/pull/40171<br>https://github.com/owncloud/core/pull/40191<br>https://github.com/owncloud/core/pull/40212<br>https://github.com/owncloud/core/pull/40246<br>https://github.com/owncloud/core/pull/40250<br>https://github.com/owncloud/core/pull/40297<br>https://github.com/owncloud/core/pull/40299<br></p>
+        </li>
+        <li class="type-change changelog-item">
+            <p>Change - Update Symfony components: <a href="https://github.com/owncloud/core/pull/39368">#39368</a></p>
+            <p>The following Symfony components have been updated to: - console 4.4.44 - event-dispatcher
+   4.4.44 - process 4.4.44 - routing 4.4.44 - translation 4.4.44 - polyfill-iconv 1.26.0 -
+   polyfill-intl-idn 1.26.0 - polyfill-intl-normalizer 1.26.0 - polyfill-mbstring 1.26.0 -
+   polyfill-php72 1.26.0 - polyfill-php73 1.26.0 - polyfill-php80 1.26.0 -
+   deprecation-contracts v2.5.2 - service-contracts v2.5.2 - translation-contracts v2.5.2 -
+   event-dispatcher-contracts v1.1.13
+            </p>
+            <p>https://github.com/owncloud/core/pull/39368<br>https://github.com/owncloud/core/pull/40111<br>https://github.com/owncloud/core/pull/40169<br>https://github.com/owncloud/core/pull/40175<br>https://github.com/owncloud/core/pull/40255<br></p>
+            <p>https://symfony.com/blog/symfony-4-4-42-released<br>https://symfony.com/blog/symfony-4-4-43-released<br>https://symfony.com/blog/symfony-4-4-44-released<br></p>
+        </li>
+        <li class="type-enhancement changelog-item">
+            <p>Enhancement - Add default app setting on a user basis: <a href="https://github.com/owncloud/core/pull/39600">#39600</a></p>
+            <p>https://github.com/owncloud/core/pull/39600<br></p>
+        </li>
+        <li class="type-enhancement changelog-item">
+            <p>Enhancement - Ignore thumbnails when propagating in home: <a href="https://github.com/owncloud/core/pull/39988">#39988</a></p>
+            <p>We no longer needlessly propagate the etag and mtime for thumbnails in the filecache.
+            </p>
+            <p>https://github.com/owncloud/core/pull/39988<br></p>
         </li>
         <li class="type-enhancement changelog-item">
             <p>Enhancement - Add language prop to /cloud/user and /cloud/users/{userid} endpoint: <a href="https://github.com/owncloud/core/pull/40087">#40087</a></p>
             <p>https://github.com/owncloud/core/pull/40087<br></p>
+        </li>
+        <li class="type-enhancement changelog-item">
+            <p>Enhancement - Add additional columns to background job queue status: <a href="https://github.com/owncloud/core/pull/40113">#40113</a></p>
+            <p>Command `occ background:queue:status` now shows additional columns for: - Last Checked -
+   Reserved At - Execution Duration
+            </p>
+            <p>https://github.com/owncloud/core/pull/40113<br></p>
+        </li>
+        <li class="type-enhancement changelog-item">
+            <p>Enhancement - Add config option to bypass the proxy setting by domain: <a href="https://github.com/owncloud/core/pull/40148">#40148</a></p>
+            <p>The new "proxy_ignore" option allows the admin to set a list of domains that won't go through the
+   proxy set via the "proxy" option
+            </p>
+            <p>https://github.com/owncloud/core/pull/40148<br></p>
+        </li>
+        <li class="type-enhancement changelog-item">
+            <p>Enhancement - Allow sharing with multiple users at once: <a href="https://github.com/owncloud/core/pull/40155">#40155</a></p>
+            <p>It is now possible to share resources with multiple users at once via the following format:
+   user1, user2, user3.
+            </p>
+            <p>https://github.com/owncloud/enterprise/issues/2865<br>
+            </p>
+            <p>https://github.com/owncloud/core/pull/40155<br>https://github.com/owncloud/core/pull/40199<br>https://github.com/owncloud/core/pull/40347<br></p>
+        </li>
+        <li class="type-enhancement changelog-item">
+            <p>Enhancement - Allow editing of public link shared single files: <a href="https://github.com/owncloud/core/pull/40264">#40264</a></p>
+            <p>It is now possible to create a public link share of a single file with Download/View/Edit
+   permissions.
+            </p>
+            <p>https://github.com/owncloud/core/pull/40264<br></p>
         </li>
     </ul>
     <h2 id="10.10.0" class="version"> Changelog for ownCloud Core [10.10.0] (2022-05-16)</h2>

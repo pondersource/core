@@ -362,6 +362,25 @@ class UtilTest extends \Test\TestCase {
 		$this->assertSame('http://localhost'.\OC::$WEBROOT.'/apps/files/', OC_Util::getDefaultPageUrl());
 	}
 
+	public function testGetDefaultPageUrlWithUserConfig() {
+		$uid = $this->getUniqueID();
+		$userDefaultApp = 'user_default_app';
+		\OC_User::setUserId($uid);
+		\OC::$server->getConfig()->setUserValue($uid, 'core', 'defaultapp', $userDefaultApp);
+
+		$appManager = $this->createMock(IAppManager::class);
+		$appManager->expects($this->any())
+			->method('isEnabledForUser')
+			->willReturn(true);
+		Dummy_OC_Util::$appManager = $appManager;
+
+		\putenv('front_controller_active=true');
+		$_REQUEST['redirect_url'] = 'myRedirectUrl.com@foo.com:a';
+		$this->assertSame('http://localhost'.\OC::$WEBROOT.'/apps/' . $userDefaultApp . '/', Dummy_OC_Util::getDefaultPageUrl());
+		\OC::$server->getConfig()->deleteUserValue($uid, 'core', 'defaultapp');
+		\OC_User::setUserId(null);
+	}
+
 	/**
 	 * Test needUpgrade() when the core version is increased
 	 */
@@ -627,6 +646,30 @@ class UtilTest extends \Test\TestCase {
 	 */
 	public function testIsSameDomain($url1, $url2, $expectedResult) {
 		$this->assertEquals($expectedResult, \OCP\Util::isSameDomain($url1, $url2));
+	}
+
+	public function stripPartialFileExtensionProvider() {
+		return [
+			['myfile.txt', true, 'myfile.txt'],
+			['myfile.txt', false, 'myfile.txt'],
+			['my.file.tar.gz', true, 'my.file.tar.gz'],
+			['my.file.tar.gz', false, 'my.file.tar.gz'],
+			['myfile.txt.part', true, 'myfile.txt'],
+			['myfile.txt.part', false, 'myfile.txt'],
+			['my.file.tar.gz.part', true, 'my.file.tar.gz'],
+			['my.file.tar.gz.part', false, 'my.file.tar.gz'],
+			['myfile.txt.ocTransferId98398476.part', true, 'myfile.txt'],
+			['myfile.txt.ocTransferId98398476.part', false, 'myfile.txt.ocTransferId98398476'],
+			['my.file.tar.gz.ocTransferId98398476.part', true, 'my.file.tar.gz'],
+			['my.file.tar.gz.ocTransferId98398476.part', false, 'my.file.tar.gz.ocTransferId98398476'],
+		];
+	}
+
+	/**
+	 * @dataProvider stripPartialFileExtensionProvider
+	 */
+	public function testStripPartialFileExtension($path, $stripId, $expectedResult) {
+		$this->assertSame($expectedResult, \OC_Util::stripPartialFileExtension($path, $stripId));
 	}
 }
 

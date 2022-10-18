@@ -17,18 +17,13 @@ Feature: upload file to shared folder
     And user "Alice" has shared folder "/FOLDER" with user "Brian"
     And user "Brian" has accepted share "/FOLDER" offered by user "Alice"
     When user "Brian" uploads file with content "uploaded content" to "/Shares/FOLDER/textfile.txt" using the TUS protocol on the WebDAV API
-    Then the HTTP status code should be "200"
-    And as "Alice" file "/FOLDER/textfile.txt" should exist
+    Then as "Alice" file "/FOLDER/textfile.txt" should exist
     And the content of file "/FOLDER/textfile.txt" for user "Alice" should be "uploaded content"
     Examples:
       | dav_version |
       | old         |
       | new         |
 
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
 
   Scenario Outline: Uploading file to a user read/write share folder works
     Given using <dav_version> DAV path
@@ -36,18 +31,12 @@ Feature: upload file to shared folder
     And user "Alice" has shared folder "/FOLDER" with user "Brian" with permissions "change"
     And user "Brian" has accepted share "/FOLDER" offered by user "Alice"
     When user "Brian" uploads file with content "uploaded content" to "/Shares/FOLDER/textfile.txt" using the TUS protocol on the WebDAV API
-    Then the HTTP status code should be "200"
-    And as "Alice" file "/FOLDER/textfile.txt" should exist
+    Then as "Alice" file "/FOLDER/textfile.txt" should exist
     And the content of file "/FOLDER/textfile.txt" for user "Alice" should be "uploaded content"
     Examples:
       | dav_version |
       | old         |
       | new         |
-
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
 
 
   Scenario Outline: Uploading a file into a group share as share receiver
@@ -58,18 +47,12 @@ Feature: upload file to shared folder
     And user "Alice" has shared folder "FOLDER" with group "grp1" with permissions "change"
     And user "Brian" has accepted share "/FOLDER" offered by user "Alice"
     When user "Brian" uploads file with content "uploaded content" to "/Shares/FOLDER/textfile.txt" using the TUS protocol on the WebDAV API
-    Then the HTTP status code should be "200"
-    And as "Alice" file "/FOLDER/textfile.txt" should exist
+    Then as "Alice" file "/FOLDER/textfile.txt" should exist
     And the content of file "/FOLDER/textfile.txt" for user "Alice" should be "uploaded content"
     Examples:
       | dav_version |
       | old         |
       | new         |
-
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
 
 
   Scenario Outline: Overwrite file to a received share folder
@@ -79,18 +62,13 @@ Feature: upload file to shared folder
     And user "Alice" has shared folder "/FOLDER" with user "Brian"
     And user "Brian" has accepted share "/FOLDER" offered by user "Alice"
     When user "Brian" uploads file with content "overwritten content" to "/Shares/FOLDER/textfile.txt" using the TUS protocol on the WebDAV API
-    Then the HTTP status code should be "200"
-    And as "Alice" file "/FOLDER/textfile.txt" should exist
+    Then as "Alice" file "/FOLDER/textfile.txt" should exist
     And the content of file "/FOLDER/textfile.txt" for user "Alice" should be "overwritten content"
     Examples:
       | dav_version |
       | old         |
       | new         |
 
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
 
   Scenario Outline: attempt to upload a file into a folder within correctly received read only share
     Given using <dav_version> DAV path
@@ -98,17 +76,11 @@ Feature: upload file to shared folder
     And user "Alice" has shared folder "/FOLDER" with user "Brian" with permissions "read"
     And user "Brian" has accepted share "/FOLDER" offered by user "Alice"
     When user "Brian" uploads file with content "uploaded content" to "/Shares/FOLDER/textfile.txt" using the TUS protocol on the WebDAV API
-    Then the HTTP status code should be "200"
-    And as "Brian" file "/Shares/FOLDER/textfile.txt" should not exist
+    Then as "Brian" file "/Shares/FOLDER/textfile.txt" should not exist
     Examples:
       | dav_version |
       | old         |
       | new         |
-
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
 
 
   Scenario Outline: Upload a file to shared folder with checksum should return the checksum in the propfind for sharee
@@ -129,11 +101,6 @@ Feature: upload file to shared folder
       | old         |
       | new         |
 
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
-
 
   Scenario Outline: Upload a file to shared folder with checksum should return the checksum in the download header for sharee
     Given using <dav_version> DAV path
@@ -153,11 +120,6 @@ Feature: upload file to shared folder
       | old         |
       | new         |
 
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
-
 
   Scenario Outline: Sharer shares a file with correct checksum should return the checksum in the propfind for sharee
     Given using <dav_version> DAV path
@@ -176,11 +138,6 @@ Feature: upload file to shared folder
       | old         |
       | new         |
 
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
-
 
   Scenario Outline: Sharer shares a file with correct checksum should return the checksum in the download header for sharee
     Given using <dav_version> DAV path
@@ -198,11 +155,6 @@ Feature: upload file to shared folder
       | dav_version |
       | old         |
       | new         |
-
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
 
 
   Scenario Outline: Sharee uploads a file to a received share folder with correct checksum
@@ -224,11 +176,6 @@ Feature: upload file to shared folder
       | old         |
       | new         |
 
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
-
 
   Scenario Outline: Sharee uploads a file to a received share folder with wrong checksum should not work
     Given using <dav_version> DAV path
@@ -247,11 +194,6 @@ Feature: upload file to shared folder
       | dav_version |
       | old         |
       | new         |
-
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
 
 
   Scenario Outline: Sharer uploads a file to shared folder with wrong correct checksum should not work
@@ -272,11 +214,6 @@ Feature: upload file to shared folder
       | old         |
       | new         |
 
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
-
 
   Scenario Outline: Sharer uploads a chunked file with correct checksum and share it with sharee should work
     Given using <dav_version> DAV path
@@ -295,10 +232,6 @@ Feature: upload file to shared folder
       | old         |
       | new         |
 
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
 
   Scenario Outline: Sharee uploads a chunked file with correct checksum to a received share folder should work
     Given using <dav_version> DAV path
@@ -319,11 +252,6 @@ Feature: upload file to shared folder
       | dav_version |
       | old         |
       | new         |
-
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
 
 
   Scenario Outline: Sharer uploads a file with checksum and as a sharee overwrites the shared file with new data and correct checksum
@@ -346,11 +274,6 @@ Feature: upload file to shared folder
       | old         |
       | new         |
 
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |
-
 
   Scenario Outline: Sharer uploads a file with checksum and as a sharee overwrites the shared file with new data and invalid checksum
     Given using <dav_version> DAV path
@@ -371,8 +294,3 @@ Feature: upload file to shared folder
       | dav_version |
       | old         |
       | new         |
-
-    @personalSpace
-    Examples:
-      | dav_version |
-      | spaces      |

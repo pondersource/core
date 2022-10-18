@@ -227,7 +227,12 @@ class OC_Util {
 					$user = $storage->getUser()->getUID();
 					$quota = OC_Util::getUserQuota($user);
 					if ($quota !== \OCP\Files\FileInfo::SPACE_UNLIMITED) {
-						return new \OC\Files\Storage\Wrapper\Quota(['storage' => $storage, 'quota' => $quota, 'root' => 'files']);
+						return new \OC\Files\Storage\Wrapper\Quota([
+							'mountPoint' => $mountPoint,
+							'storage' => $storage,
+							'quota' => $quota,
+							'root' => 'files'
+						]);
 					}
 				}
 			}
@@ -1175,7 +1180,17 @@ class OC_Util {
 				$location = $urlGenerator->getAbsoluteURL($defaultPage);
 			} else {
 				$appId = 'files';
-				$defaultApps = \explode(',', \OC::$server->getConfig()->getSystemValue('defaultapp', 'files'));
+				$uid = \OC_User::getUser();
+				$config = \OC::$server->getConfig();
+				$defaultApps = \explode(',', $config->getSystemValue('defaultapp', 'files'));
+
+				if ($uid) {
+					$userDefaultApp = $config->getUserValue($uid, 'core', 'defaultapp', null);
+					if ($userDefaultApp) {
+						\array_unshift($defaultApps, $userDefaultApp);
+					}
+				}
+
 				// find the first app that is enabled for the current user
 				foreach ($defaultApps as $defaultApp) {
 					$defaultApp = OC_App::cleanAppId(\strip_tags($defaultApp));
@@ -1452,6 +1467,32 @@ class OC_Util {
 		$file = \rtrim($file, '/');
 		$t = \explode('/', $file);
 		return \array_pop($t);
+	}
+
+	/**
+	 * Remove the ".part" extension from the path. The "ocTransferId" part added for the uploads
+	 * can also be removed.
+	 * @params string $path the path to be cleaned up
+	 * @params bool $stripTransferId whether the method should also remove the "ocTransferId" if it exists
+	 * @return string the cleaned path
+	 */
+	public static function stripPartialFileExtension(string $path, bool $stripTransferId = true): string {
+		$extension = \pathinfo($path, PATHINFO_EXTENSION);
+
+		if ($extension === 'part') {
+			$newLength = \strlen($path) - 5; // 5 = strlen(".part")
+			$fPath = \substr($path, 0, $newLength);
+
+			// if path also contains a transaction id, we remove it too
+			$extension = \pathinfo($fPath, PATHINFO_EXTENSION);
+			if ($stripTransferId && \substr($extension, 0, 12) === 'ocTransferId') { // 12 = strlen("ocTransferId")
+				$newLength = \strlen($fPath) - \strlen($extension) -1;
+				$fPath = \substr($fPath, 0, $newLength);
+			}
+			return $fPath;
+		} else {
+			return $path;
+		}
 	}
 
 	/**
