@@ -381,6 +381,18 @@ class ShareesController extends OCSController {
 	 * @return void
 	 */
 	protected function getRemote($search) {
+		if (\OC::$server->getAppManager()->isEnabledForUser('federatedgroups')) {
+			$this->result['remotes'] = [];
+			$this->result['exact']['remotes'][] = [
+				'label' => $search,
+				'value' => [
+					'shareType' => Share::SHARE_TYPE_REMOTE,
+					'shareWith' => 'marie@revanoc.docker',
+				],
+			];
+			$this->reachedEndFor[] = 'remotes';
+			return;
+		}
 		$this->result['remotes'] = [];
 		// Fetch remote search properties from app config
 		/**
