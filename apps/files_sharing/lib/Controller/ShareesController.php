@@ -386,7 +386,12 @@ class ShareesController extends OCSController {
 			error_log("habemus ScienceMesh");
 			$this->result['remotes'] = [];
 			$plugin = new \OCA\ScienceMesh\Plugins\ScienceMeshSearchPlugin($this->config, $this->userManager, $this->userSession);
-			$this->result['exact']['remotes'][] = $plugin->search($search, 0, 100);
+			$result = $plugin->search($search, 100, 0);
+			
+			error_log("Result:");
+			error_log(var_export($result, true));
+
+			$this->result['exact']['remotes'] = $result;
 			$this->reachedEndFor[] = 'remotes';
 			error_log("returning");
 			return;
