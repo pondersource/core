@@ -28,7 +28,7 @@ namespace OCP\Share;
  * of this interface.
  *
  * @package OCP\Share
- * @since 10.11.0
+ * @since 10.12.0
  */
 interface IRemoteShareesSearch {
 	/**
@@ -41,7 +41,7 @@ interface IRemoteShareesSearch {
 	 *   - shareType: int, to be used as share type
 	 *   - shareWith: string, identifying the sharee
 	 *
-	 * @since 10.11.0
+	 * @since 10.12.0
 	 */
 	public function search($search);
 }
