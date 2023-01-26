@@ -258,3 +258,69 @@ Feature: file versions remember the author of each version
     When user "Carol" gets the number of versions of file "/textfile0.txt"
     Then the HTTP status code should be "207"
     And the number of versions should be "0"
+
+  @skip_on_objectstore
+  Scenario: enable file versioning and check the version author after restoring a version of a file inside a folder
+    Given user "Alice" has created folder "/test"
+    And user "Alice" has shared folder "/test" with user "Brian" with permissions "all"
+    And user "Alice" has shared folder "/test" with user "Carol" with permissions "all"
+    And user "Alice" has uploaded file with content "uploaded content alice" to "/test/textfile0.txt"
+    And user "Brian" has uploaded file with content "uploaded content brian" to "/test/textfile0.txt"
+    And user "Carol" has uploaded file with content "uploaded content carol" to "/test/textfile0.txt"
+    When user "Brian" restores version index "1" of file "/test/textfile0.txt" using the WebDAV API
+    Then the HTTP status code should be "204"
+    And as user "Alice,Brian,Carol" the authors of the versions of file "/test/textfile0.txt" should be:
+      | index | author |
+      | 1     | Carol  |
+      | 2     | Alice  |
+
+  @skip_on_objectstore
+  Scenario: enable file versioning and check the version author after restoring a version of a file
+    Given user "Alice" has uploaded file with content "uploaded content alice" to "/textfile0.txt"
+    And user "Alice" has shared file "/textfile0.txt" with user "Brian"
+    And user "Alice" has shared file "/textfile0.txt" with user "Carol"
+    And user "Brian" has uploaded file with content "uploaded content brian" to "/textfile0.txt"
+    And user "Carol" has uploaded file with content "uploaded content carol" to "/textfile0.txt"
+    When user "Brian" restores version index "1" of file "/textfile0.txt" using the WebDAV API
+    Then the HTTP status code should be "204"
+    And as user "Alice,Brian,Carol" the authors of the versions of file "/textfile0.txt" should be:
+      | index | author |
+      | 1     | Carol  |
+      | 2     | Alice  |
+
+  @skip_on_objectstore
+  Scenario: check the author of the file version which was created before enabling the version storage
+    Given the administrator has disabled the file version storage feature
+    And user "Alice" has uploaded file with content "uploaded content alice" to "/textfile0.txt"
+    And user "Alice" has shared folder "/textfile0.txt" with user "Brian"
+    And the administrator has enabled the file version storage feature
+    And user "Brian" has uploaded file with content "uploaded content brian" to "/textfile0.txt"
+    When user "Brian" restores version index "1" of file "/textfile0.txt" using the WebDAV API
+    Then the HTTP status code should be "204"
+    And as user "Alice,Brian" the authors of the versions of file "/textfile0.txt" should be:
+      | index | author |
+      | 1     | Brian  |
+    When user "Brian" restores version index "1" of file "/textfile0.txt" using the WebDAV API
+    Then the HTTP status code should be "204"
+    And as user "Alice,Brian" the authors of the versions of file "/textfile0.txt" should be:
+      | index | author |
+      | 1     |        |
+
+  @skip_on_objectstore
+  Scenario: check the author of the file version (inside a folder) which was created before enabling the version storage
+    Given user "Alice" has created folder "/test"
+    And the administrator has disabled the file version storage feature
+    And user "Alice" has uploaded file with content "uploaded content alice" to "/test/textfile0.txt"
+    And user "Alice" has shared folder "/test" with user "Brian" with permissions "all"
+    And the administrator has enabled the file version storage feature
+    And user "Brian" has uploaded file with content "uploaded content brian" to "/test/textfile0.txt"
+    When user "Brian" restores version index "1" of file "/test/textfile0.txt" using the WebDAV API
+    Then the HTTP status code should be "204"
+    And as user "Alice,Brian" the authors of the versions of file "/test/textfile0.txt" should be:
+      | index | author |
+      | 1     | Brian  |
+    When user "Brian" restores version index "1" of file "/test/textfile0.txt" using the WebDAV API
+    Then the HTTP status code should be "204"
+    And as user "Alice,Brian" the authors of the versions of file "/test/textfile0.txt" should be:
+      | index | author |
+      | 1     |        |
