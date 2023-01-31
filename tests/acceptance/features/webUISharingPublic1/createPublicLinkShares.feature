@@ -1,4 +1,4 @@
-@webUI @insulated @disablePreviews @mailhog @public_link_share-feature-required @files_sharing-app-required
+@webUI @insulated @disablePreviews @email @public_link_share-feature-required @files_sharing-app-required
 Feature: Share by public link
   As a user
   I want to share files through a publicly accessible link
@@ -93,17 +93,17 @@ Feature: Share by public link
     And parameter "shareapi_allow_public_notification" of app "core" has been set to "yes"
     And user "Alice" has logged in using the webUI
     When the user creates a new public link for folder "simple-folder" using the webUI with
-      | email | foo@bar.co, foo@barr.co |
+      | email | foo@bar.co, goo@barr.co |
     Then the email address "foo@bar.co" should have received an email from user "Alice" with the body containing
     """
     %displayname% shared simple-folder with you
     """
-    And the email address "foo@barr.co" should have received an email from user "Alice" with the body containing
+    And the email address "goo@barr.co" should have received an email from user "Alice" with the body containing
     """
     %displayname% shared simple-folder with you
     """
     And the email address "foo@bar.co" should have received an email containing the last shared public link
-    And the email address "foo@barr.co" should have received an email containing the last shared public link
+    And the email address "goo@barr.co" should have received an email containing the last shared public link
 
 
   Scenario: user shares a public link via email with a personal message
@@ -256,7 +256,7 @@ Feature: Share by public link
     Then the fields of the last response to user "Alice" should include
       | expiration |  |
 
-  @skipOnOcV10.3
+
   Scenario: user creates a new public link using webUI removing expiration date when default expire date is set and enforced
     Given parameter "shareapi_default_expire_date" of app "core" has been set to "yes"
     And parameter "shareapi_enforce_expire_date" of app "core" has been set to "yes"
@@ -317,7 +317,7 @@ Feature: Share by public link
       | -123     |
       | 0.0      |
 
-  @skipOnOcV10.8.0
+
   Scenario: read only public link quick action works when enabled
     Given the administrator has "enabled" public link quick action
     And user "Alice" has created folder "/simple-folder"
@@ -329,7 +329,7 @@ Feature: Share by public link
     And the public accesses the last created public link using the webUI
     Then file "lorem.txt" should be listed on the webUI
 
-  @skipOnOcV10.8.0
+
   Scenario: read only public link quick action does not work when disabled
     Given the administrator has "disabled" public link quick action
     And user "Alice" has created folder "/simple-folder"
@@ -337,7 +337,7 @@ Feature: Share by public link
     When the user browses to the files page
     Then the public link quick action button should not be displayed for folder "simple-folder" on the webUI
 
-  @skipOnOcV10.8.0
+
   Scenario: quick action is not displayed when password is enforced in read only link
     Given parameter "shareapi_enforce_links_password_read_only" of app "core" has been set to "yes"
     And the administrator has "enabled" public link quick action
@@ -346,7 +346,7 @@ Feature: Share by public link
     When the user browses to the files page
     Then the public link quick action button should not be displayed for folder "simple-folder" on the webUI
 
-  @skipOnOcV10.8.0
+
   Scenario: no new public quick link is created for a resource with already a public quick link
     Given the administrator has "enabled" public link quick action
     And user "Alice" has created folder "/simple-folder"
@@ -357,7 +357,7 @@ Feature: Share by public link
     When the user creates a read only public link for folder "simple-folder" using the quick action button
     Then the number of public links should be 1
 
-  @skipOnOcV10.8.0
+
   Scenario: no new public quick link is created for a resource with already a public quick link (after a login)
     Given the administrator has "enabled" public link quick action
     And user "Alice" has created folder "/simple-folder"

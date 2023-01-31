@@ -268,20 +268,29 @@ class Encryption extends Wrapper {
 	 * @return bool
 	 */
 	public function rename($path1, $path2) {
-		$result = $this->storage->rename($path1, $path2);
+		$renameOk = false;
+		$copyKeysOk = true;  // assume keys are copied, in case we deal with versions
 
-		if ($result &&
+		$isVersion = $this->isVersion($path2) || $this->isVersion($path1);
+		// if encryption is disabled, consider it's a version in order to skip
+		// moving the keys
+		$isVersion = $isVersion || !$this->encryptionManager->isEnabled();
+
+		$source = $this->getFullPath($path1);
+		$target = $this->getFullPath($path2);
+		$keysExcluded = $this->util->isExcluded($source);
+
+		if (!$isVersion && !$keysExcluded) {
 			// versions always use the keys from the original file, so we can skip
 			// this step for versions
-			$this->isVersion($path2) === false &&
-			$this->encryptionManager->isEnabled()) {
-			$source = $this->getFullPath($path1);
-			if (!$this->util->isExcluded($source)) {
-				$target = $this->getFullPath($path2);
-				if (isset($this->unencryptedSize[$source])) {
-					$this->unencryptedSize[$target] = $this->unencryptedSize[$source];
-				}
-				$this->keyStorage->renameKeys($source, $target);
+			// Keys can also be excluded if we're moving the keys themselves. It could
+			// happen with the encryption:change-key-storage-root command
+			if (isset($this->unencryptedSize[$source])) {
+				$this->unencryptedSize[$target] = $this->unencryptedSize[$source];
+			}
+
+			$copyKeysOk = $this->keyStorage->copyKeys($source, $target);
+			if ($copyKeysOk) {
 				$module = $this->getEncryptionModule($path2);
 				if ($module) {
 					$module->update($target, $this->uid, []);
@@ -289,7 +298,32 @@ class Encryption extends Wrapper {
 			}
 		}
 
-		return $result;
+		if ($copyKeysOk) {
+			$renameOk = $this->storage->rename($path1, $path2);
+			if ($isVersion || $keysExcluded) {
+				// no need to deal with the keys
+				return $renameOk;
+			}
+
+			// need to remove the keys, either the old ones if the rename
+			// succeeded, or the new ones if the rename failed
+			if ($renameOk) {
+				$sourceKeyDeleteOk = $this->keyStorage->deleteAllFileKeys($source);
+				if (!$sourceKeyDeleteOk) {
+					$this->logger->error("Renaming {$path1} to {$path2} succeeded, but key {$target} wasn't deleted from the original location in {$source}");
+				}
+			} else {
+				$this->logger->error("Renaming {$path1} to {$path2} failed");
+				$targetKeyDeleteOk = $this->keyStorage->deleteAllFileKeys($target);
+				if (!$targetKeyDeleteOk) {
+					$this->logger->error("Copied key {$source} wasn't removed from the target location in {$target}");
+				}
+			}
+		} else {
+			$this->logger->error("Failed to copied keys from {$source} to {$target} while renaming {$path1} to {$path2}");
+		}
+
+		return $renameOk && $copyKeysOk;
 	}
 
 	/**
@@ -366,7 +400,6 @@ class Encryption extends Wrapper {
 	 * @throws ModuleDoesNotExistsException
 	 */
 	public function fopen($path, $mode) {
-
 		// check if the file is stored in the array cache, this means that we
 		// copy a file over to the versions folder, in this case we don't want to
 		// decrypt it
@@ -678,7 +711,6 @@ class Encryption extends Wrapper {
 	 * @return bool
 	 */
 	public function copyFromStorage(Storage $sourceStorage, $sourceInternalPath, $targetInternalPath, $preserveMtime = false, $isRename = false) {
-
 		// TODO clean this up once the underlying moveFromStorage in OC\Files\Storage\Wrapper\Common is fixed:
 		// - call $this->storage->copyFromStorage() instead of $this->copyBetweenStorage
 		// - copy the file cache update from  $this->copyBetweenStorage to this method

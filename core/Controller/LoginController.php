@@ -42,7 +42,6 @@ use OCP\IUser;
 use OCP\IUserManager;
 
 class LoginController extends Controller {
-
 	/** @var IUserManager */
 	private $userManager;
 
@@ -136,7 +135,9 @@ class LoginController extends Controller {
 			return new TemplateResponse(
 				'core',
 				'apacheauthredirect',
-				[],
+				[
+					'redirect_url' => $this->getDefaultUrl()
+				],
 				'guest'
 			);
 		}

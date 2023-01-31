@@ -22,7 +22,6 @@
 namespace OCA\DAV\Tests\Unit\Files\Sharing;
 
 use Sabre\DAV\Server;
-use Sabre\DAV\ServerPlugin;
 use Sabre\HTTP\RequestInterface;
 use Sabre\HTTP\ResponseInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -86,7 +85,7 @@ class PublicLinkEventsPluginTest extends TestCase {
 		$lowercaseMethod = \strtolower($method);
 		$this->dispatcher->expects($this->once())
 			->method('dispatch')
-			->with("dav.public.{$lowercaseMethod}.before", $this->anything());
+			->with($this->anything(), "dav.public.{$lowercaseMethod}.before");
 
 		$this->publicLinkEventsPlugin->initialize($this->server);  // required to include the server instance
 		$this->publicLinkEventsPlugin->beforeMethod($request, $response);
@@ -114,7 +113,7 @@ class PublicLinkEventsPluginTest extends TestCase {
 		$lowercaseMethod = \strtolower($method);
 		$this->dispatcher->expects($this->once())
 			->method('dispatch')
-			->with("dav.public.{$lowercaseMethod}.after", $this->anything());
+			->with($this->anything(), "dav.public.{$lowercaseMethod}.after");
 
 		$this->publicLinkEventsPlugin->initialize($this->server);  // required to include the server instance
 		$this->publicLinkEventsPlugin->afterMethod($request, $response);

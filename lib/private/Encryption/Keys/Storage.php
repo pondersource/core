@@ -33,7 +33,6 @@ use OC\User\NoUserException;
 use OC_Util;
 
 class Storage implements IStorage {
-
 	// hidden file which indicate that the folder is a valid key storage
 	public const KEY_STORAGE_MARKER = '.oc_key_storage';
 
@@ -301,12 +300,10 @@ class Storage implements IStorage {
 
 		if ($this->view->file_exists($sourcePath)) {
 			$this->keySetPreparation(\dirname($targetPath));
-			$this->view->rename($sourcePath, $targetPath);
-
-			return true;
+			return $this->view->rename($sourcePath, $targetPath);
 		}
 
-		return false;
+		return true;
 	}
 
 	/**
@@ -322,11 +319,10 @@ class Storage implements IStorage {
 
 		if ($this->view->file_exists($sourcePath)) {
 			$this->keySetPreparation(\dirname($targetPath));
-			$this->view->copy($sourcePath, $targetPath);
-			return true;
+			return $this->view->copy($sourcePath, $targetPath);
 		}
 
-		return false;
+		return true;
 	}
 
 	/**

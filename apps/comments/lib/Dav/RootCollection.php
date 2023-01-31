@@ -35,7 +35,6 @@ use Sabre\DAV\ICollection;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class RootCollection implements ICollection {
-
 	/** @var EntityTypeCollection[]|null */
 	private $entityTypeCollections;
 
@@ -98,7 +97,7 @@ class RootCollection implements ICollection {
 		}
 
 		$event = new CommentsEntityEvent(CommentsEntityEvent::EVENT_ENTITY);
-		$this->dispatcher->dispatch(CommentsEntityEvent::EVENT_ENTITY, $event);
+		$this->dispatcher->dispatch($event, CommentsEntityEvent::EVENT_ENTITY);
 
 		$this->entityTypeCollections = [];
 		foreach ($event->getEntityCollections() as $entity => $entityExistsFunction) {

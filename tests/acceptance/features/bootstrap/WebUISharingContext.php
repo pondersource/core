@@ -45,7 +45,6 @@ require_once 'bootstrap.php';
  * WebUI SharingContext context.
  */
 class WebUISharingContext extends RawMinkContext implements Context {
-
 	/**
 	 *
 	 * @var FilesPage
@@ -172,6 +171,27 @@ class WebUISharingContext extends RawMinkContext implements Context {
 			$maxRetries,
 			$quiet,
 			$expectedToWork
+		);
+	}
+
+	/**
+	 * @When the user shares file/folder :resource with users :users using the webUI
+	 *
+	 * @param string $resource
+	 * @param string $users
+	 *
+	 * @return void
+	 * @throws Exception
+	 */
+	public function theUserSharesFileFolderWithUsersUsingTheWebUI(
+		string $resource,
+		string $users
+	):void {
+		$this->theUserSharesFileFolderWithUserOrGroupUsingTheWebUI(
+			$resource,
+			"users",
+			null,
+			$users
 		);
 	}
 
@@ -449,6 +469,22 @@ class WebUISharingContext extends RawMinkContext implements Context {
 					$maxRetries
 				);
 			}
+		} elseif ($userOrGroup === "users") {
+			$users = explode(",", $name);
+			$usersArray = [];
+			foreach ($users as $user) {
+				if ($this->featureContext->userExists($user)) {
+					$usersArray[] = $user;
+				}
+			}
+			$nameToMatch = join(", ", $usersArray);
+			$this->sharingDialog->shareWithUsers(
+				$name,
+				$nameToMatch,
+				$this->getSession(),
+				$quiet,
+				$maxRetries
+			);
 		} else {
 			$this->sharingDialog->shareWithGroup(
 				$name,
@@ -2292,7 +2328,6 @@ class WebUISharingContext extends RawMinkContext implements Context {
 	 */
 	public function theEmailAddressShouldHaveReceivedAnEmailContainingSharedPublicLink(?string $address):void {
 		$content = EmailHelper::getBodyOfLastEmail(
-			EmailHelper::getLocalMailhogUrl(),
 			$address,
 			$this->featureContext->getStepLineRef()
 		);

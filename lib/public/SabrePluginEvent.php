@@ -24,13 +24,12 @@ namespace OCP;
 
 use OCP\AppFramework\Http;
 use Sabre\DAV\Server;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * @since 8.2.0
  */
 class SabrePluginEvent extends Event {
-
 	/** @var int */
 	protected $statusCode;
 

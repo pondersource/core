@@ -9,12 +9,10 @@ use OC\Files\Storage\Temporary;
 use OC\Files\Storage\Wrapper\Encryption;
 use OC\Files\View;
 use OC\User\Manager;
-use OCP\Files\Storage\IStorage;
 use PHPUnit\Framework\MockObject\MockObject;
 use Test\Files\Storage\Storage;
 
 class EncryptionTest extends Storage {
-
 	/**
 	 * block size will always be 8192 for a PHP stream
 	 * @see https://bugs.php.net/bug.php?id=21641
@@ -415,11 +413,11 @@ class EncryptionTest extends Storage {
 		if ($encryptionEnabled) {
 			$this->keyStore
 				->expects($this->once())
-				->method('renameKeys')
+				->method('copyKeys')
 				->willReturn($renameKeysReturn);
 		} else {
 			$this->keyStore
-				->expects($this->never())->method('renameKeys');
+				->expects($this->never())->method('copyKeys');
 		}
 		$this->util->expects($this->any())
 			->method('isFile')->willReturn(true);

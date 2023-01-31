@@ -34,7 +34,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class CleanupChunks extends Command {
-
 	/** @var IUserManager */
 	protected $userManager;
 
@@ -74,7 +73,7 @@ class CleanupChunks extends Command {
 		$output->writeln("Cleaning chunks older than $d days({$cutOffTime->format('c')})");
 		$this->userManager->callForSeenUsers(function (IUser $user) use ($output, $cutOffTime, $checkUploadExistsLocal) {
 			\OC_Util::tearDownFS();
-			\OC_Util::setupFS($user->getUID(), false);
+			\OC_Util::setupFS($user->getUID());
 
 			$view = new View('/' . $user->getUID() . '/uploads');
 			$home = new UploadHome(['user' => $user]);

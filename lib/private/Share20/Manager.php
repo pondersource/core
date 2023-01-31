@@ -61,7 +61,6 @@ use OCP\Activity\IManager as ActivityIManager;
  * This class is the communication hub for all sharing related operations.
  */
 class Manager implements IManager {
-
 	/** @var IProviderFactory */
 	private $factory;
 	/** @var ILogger */
@@ -655,7 +654,6 @@ class Manager implements IManager {
 	 * @param \OCP\Share\IShare $share
 	 */
 	protected function setLinkParent(\OCP\Share\IShare $share) {
-
 		// No sense in checking if the method is not there.
 		if (\method_exists($share, 'setParent')) {
 			$storage = $share->getNode()->getStorage();
@@ -1598,15 +1596,15 @@ class Manager implements IManager {
 			return false;
 		}
 		$beforeEvent = new GenericEvent(null, ['shareObject' => $share]);
-		$this->eventDispatcher->dispatch('share.beforepasswordcheck', $beforeEvent);
+		$this->eventDispatcher->dispatch($beforeEvent, 'share.beforepasswordcheck');
 		$newHash = '';
 		if (!$this->hasher->verify($password, $share->getPassword(), $newHash)) {
 			$failEvent = new GenericEvent(null, ['shareObject' => $share]);
-			$this->eventDispatcher->dispatch('share.failedpasswordcheck', $failEvent);
+			$this->eventDispatcher->dispatch($failEvent, 'share.failedpasswordcheck');
 			return false;
 		}
 		$afterEvent = new GenericEvent(null, ['shareObject' => $share]);
-		$this->eventDispatcher->dispatch('share.afterpasswordcheck', $afterEvent);
+		$this->eventDispatcher->dispatch($afterEvent, 'share.afterpasswordcheck');
 		if (!empty($newHash)) {
 			$share->setPassword($newHash);
 			$provider = $this->factory->getProviderForType($share->getShareType());

@@ -45,7 +45,6 @@ use OCP\IUserSession;
 use OCP\Lock\ILockingProvider;
 use OCP\Lock\LockedException;
 use OCP\Share;
-use OCP\User;
 use OCP\User\Constants;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -65,7 +64,6 @@ use OCP\Share\IManager;
  * @group DB
  */
 class Share20OcsControllerTest extends TestCase {
-
 	/** @var Manager | MockObject */
 	private $shareManager;
 
@@ -3388,8 +3386,8 @@ class Share20OcsControllerTest extends TestCase {
 			$this->eventDispatcher->expects($this->exactly(2))
 				->method('dispatch')
 				->withConsecutive(
-					[$this->equalTo('share.beforeaccept'), $this->equalTo(new GenericEvent(null, ['share' => $userShare]))],
-					[$this->equalTo('share.afteraccept'), $this->equalTo(new GenericEvent(null, ['share' => $userShare]))]
+					[$this->equalTo(new GenericEvent(null, ['share' => $userShare])), $this->equalTo('share.beforeaccept')],
+					[$this->equalTo(new GenericEvent(null, ['share' => $userShare])), $this->equalTo('share.afteraccept')]
 				);
 		} else {
 			$userFolder->expects($this->never())
@@ -3397,8 +3395,8 @@ class Share20OcsControllerTest extends TestCase {
 			$this->eventDispatcher->expects($this->exactly(2))
 				->method('dispatch')
 				->withConsecutive(
-					[$this->equalTo('share.beforereject'), $this->equalTo(new GenericEvent(null, ['share' => $userShare]))],
-					[$this->equalTo('share.afterreject'), $this->equalTo(new GenericEvent(null, ['share' => $userShare]))]
+					[$this->equalTo(new GenericEvent(null, ['share' => $userShare])), $this->equalTo('share.beforereject')],
+					[$this->equalTo(new GenericEvent(null, ['share' => $userShare])), $this->equalTo('share.afterreject')]
 				);
 		}
 
@@ -3443,16 +3441,16 @@ class Share20OcsControllerTest extends TestCase {
 			$this->eventDispatcher->expects($this->exactly(2))
 				->method('dispatch')
 				->withConsecutive(
-					[$this->equalTo('share.beforeaccept'), $this->equalTo(new GenericEvent(null, ['share' => $userShare]))],
-					[$this->equalTo('share.afteraccept'), $this->equalTo(new GenericEvent(null, ['share' => $userShare]))]
+					[$this->equalTo(new GenericEvent(null, ['share' => $userShare])), $this->equalTo('share.beforeaccept')],
+					[$this->equalTo(new GenericEvent(null, ['share' => $userShare])), $this->equalTo('share.afteraccept')]
 				);
 		} else {
 			$userShare->setState(\OCP\Share::STATE_REJECTED);
 			$this->eventDispatcher->expects($this->exactly(2))
 				->method('dispatch')
 				->withConsecutive(
-					[$this->equalTo('share.beforereject'), $this->equalTo(new GenericEvent(null, ['share' => $userShare]))],
-					[$this->equalTo('share.afterreject'), $this->equalTo(new GenericEvent(null, ['share' => $userShare]))]
+					[$this->equalTo(new GenericEvent(null, ['share' => $userShare])), $this->equalTo('share.beforereject')],
+					[$this->equalTo(new GenericEvent(null, ['share' => $userShare])), $this->equalTo('share.afterreject')]
 				);
 		}
 
@@ -3517,8 +3515,8 @@ class Share20OcsControllerTest extends TestCase {
 			$this->eventDispatcher->expects($this->exactly(2))
 				->method('dispatch')
 				->withConsecutive(
-					[$this->equalTo('share.beforeaccept'), $this->equalTo(new GenericEvent(null, ['share' => $userShare]))],
-					[$this->equalTo('share.afteraccept'), $this->equalTo(new GenericEvent(null, ['share' => $userShare]))]
+					[$this->equalTo(new GenericEvent(null, ['share' => $userShare])), $this->equalTo('share.beforeaccept')],
+					[$this->equalTo(new GenericEvent(null, ['share' => $userShare])), $this->equalTo('share.afteraccept')]
 				);
 		} else {
 			$userFolder->expects($this->never())
@@ -3526,8 +3524,8 @@ class Share20OcsControllerTest extends TestCase {
 			$this->eventDispatcher->expects($this->exactly(2))
 				->method('dispatch')
 				->withConsecutive(
-					[$this->equalTo('share.beforereject'), $this->equalTo(new GenericEvent(null, ['share' => $userShare]))],
-					[$this->equalTo('share.afterreject'), $this->equalTo(new GenericEvent(null, ['share' => $userShare]))]
+					[$this->equalTo(new GenericEvent(null, ['share' => $userShare])), $this->equalTo('share.beforereject')],
+					[$this->equalTo(new GenericEvent(null, ['share' => $userShare])), $this->equalTo('share.afterreject')]
 				);
 		}
 

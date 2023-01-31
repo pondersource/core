@@ -1,4 +1,4 @@
-@webUI @insulated @disablePreviews @mailhog @public_link_share-feature-required @files_sharing-app-required
+@webUI @insulated @disablePreviews @email @public_link_share-feature-required @files_sharing-app-required
 Feature: Share a file by public link
   As a user
   I want to share files through a publicly accessible link
@@ -20,7 +20,7 @@ Feature: Share a file by public link
     And uploading content to a public link shared file should not work using the old public WebDAV API
     And uploading content to a public link shared file should not work using the new public WebDAV API
 
-  @skipOnOcV10.9 @skipOnOcV10.10
+  @skipOnOcV10.10
   Scenario: creating a public link with read & write permissions
     Given user "Alice" has uploaded file with content "text to test public links" to "/lorem.txt"
     And user "Alice" has logged in using the webUI
