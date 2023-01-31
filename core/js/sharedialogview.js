@@ -353,9 +353,13 @@
 		},
 
 		autocompleteRenderItem: function(ul, item) {
-
 			var text = item.label;
+
 			var typeInfo = t('core', 'User');
+
+			if (item.label.startsWith("G_")) {
+				typeInfo = t('core', 'Group');
+			}
 
 			if (item.batch) {
 				typeInfo = this._getBatchActionLabel();
