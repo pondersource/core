@@ -359,7 +359,7 @@
 			// its added to share.js 
 			// this is just for backward compatibility(just in time share.js gets change)
 			OC.Share.SHARE_TYPE_REMOTE_GROUP = 7
-			
+
 			var text = item.label;
 
 			var typeInfo = t('core', 'User');
@@ -393,8 +393,8 @@
 			var $el = $(template({
 				showAvatar: this.configModel.areAvatarsEnabled(),
 				displayName: text,
-				showIcon: Boolean(item.value.shareType === 7),
-				iconClass: item.value.shareType === 7 && "group",
+				showIcon: Boolean(item.value.shareType === OC.Share.SHARE_TYPE_REMOTE_GROUP),
+				iconClass: item.value.shareType === OC.Share.SHARE_TYPE_REMOTE_GROUP && "group",
 				typeInfo: typeInfo,
 				additionalInfo: item.value.shareWithAdditionalInfo,
 				shareTypeClass: (item.value.shareType === OC.Share.SHARE_TYPE_GROUP) ? 'group' : 'user'
