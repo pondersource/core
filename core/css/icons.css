@@ -202,6 +202,9 @@ img.icon-loading-small-dark, object.icon-loading-small-dark, video.icon-loading-
 .icon-history {
 	background-image: url('../img/actions/history.svg');
 }
+.icon-group {
+	background-image: url('../img/actions/group.svg');
+}
 
 .icon-info {
 	background-image: url('../img/actions/info.svg');

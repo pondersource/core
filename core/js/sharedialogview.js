@@ -8,8 +8,8 @@
  *
  */
 
-(function() {
-	if(!OC.Share) {
+(function () {
+	if (!OC.Share) {
 		OC.Share = {};
 	}
 
@@ -28,7 +28,7 @@
 		'        <label for="shareWith-{{cid}}" class="hidden-visually">{{shareLabel}}</label>' +
 		'        <div class="oneline">' +
 		'            <input id="shareWith-{{cid}}" class="shareWithField" type="text" placeholder="{{sharePlaceholder}}" />' +
-		'            <span class="shareWithLoading icon-loading-small hidden"></span>'+
+		'            <span class="shareWithLoading icon-loading-small hidden"></span>' +
 		'            {{{remoteShareInfo}}}' +
 		'        </div>' +
 		'        <div class="shareeListView subView"></div>' +
@@ -50,20 +50,23 @@
 
 	var TEMPLATE_AUTOCOMPLETE_ITEM =
 		'<li class="{{shareTypeClass}}">' +
-			'<a>' +
-				'<div class="share-autocomplete-item">' +
-					'{{#if showAvatar}}' +
-					'<div class="avatardiv"></div>' +
-					'{{/if}}' +
-					'<div class="autocomplete-item-text">' +
-						'<span class="autocomplete-item-displayname">{{displayName}}</span>' +
-						'{{#if additionalInfo}}' +
-						'<br/><span class="autocomplete-item-additional-info">({{additionalInfo}})</span>' +
-						'{{/if}}' +
-						'<br/><span class="autocomplete-item-typeInfo">{{typeInfo}}</span>' +
-					'</div>' +
-				'</div>' +
-			'</a>' +
+		'<a>' +
+		'<div class="share-autocomplete-item">' +
+		'{{#if showAvatar}}' +
+		'<div class="avatardiv"></div>' +
+		'{{/if}}' +
+		'<div class="autocomplete-item-text">' +
+		'<span class="autocomplete-item-displayname">{{displayName}}</span>' +
+		'{{#if additionalInfo}}' +
+		'<br/><span class="autocomplete-item-additional-info">({{additionalInfo}})</span>' +
+		'{{/if}}' +
+		'<br/><span class="autocomplete-item-typeInfo">{{typeInfo}}</span>' +
+		'</div>' +
+		'{{#if showIcon}}' +
+		'<span class="icon icon-{{iconClass}}"></span>' +
+		'{{/if}}' +
+		'</div>' +
+		'</a>' +
 		'</li>';
 
 	/**
@@ -103,23 +106,23 @@
 			'click .subTabHeader': '_onClickTabHeader'
 		},
 
-		initialize: function(options) {
+		initialize: function (options) {
 			var view = this;
 
-			this.model.on('fetchError', function() {
+			this.model.on('fetchError', function () {
 				OC.Notification.showTemporary(t('core', 'Share details could not be loaded for this item.'));
 			});
 
-			if(!_.isUndefined(options.configModel)) {
+			if (!_.isUndefined(options.configModel)) {
 				this.configModel = options.configModel;
 			} else {
 				throw 'missing OC.Share.ShareConfigModel';
 			}
 
-			this.configModel.on('change:isRemoteShareAllowed', function() {
+			this.configModel.on('change:isRemoteShareAllowed', function () {
 				view.render();
 			});
-			this.model.on('change:permissions', function() {
+			this.model.on('change:permissions', function () {
 				view.render();
 			});
 
@@ -136,7 +139,7 @@
 				shareeListView: 'ShareDialogShareeListView'
 			};
 
-			for(var name in subViews) {
+			for (var name in subViews) {
 				var className = subViews[name];
 				this[name] = _.isUndefined(options[name])
 					? new OC.Share[className](subViewOptions)
@@ -154,7 +157,7 @@
 			OC.Plugins.attach('OC.Share.ShareDialogView', this);
 		},
 
-		_onClickTabHeader: function(ev) {
+		_onClickTabHeader: function (ev) {
 			var $target = $(ev.target);
 			this.$('.subTabHeaders .subTabHeader.selected').removeClass('selected');
 
@@ -179,7 +182,7 @@
 			}
 		},
 
-		onShareWithFieldChanged: function() {
+		onShareWithFieldChanged: function () {
 			var $el = this.$el.find('.shareWithField');
 			if ($el.val().length < 2) {
 				$el.removeClass('error').tooltip('hide');
@@ -204,8 +207,8 @@
 					$loading.addClass('hidden');
 					$loading.removeClass('inlineblock');
 					if (result.ocs.meta.statuscode == 100) {
-						var users   = result.ocs.data.exact.users.concat(result.ocs.data.users);
-						var groups  = result.ocs.data.exact.groups.concat(result.ocs.data.groups);
+						var users = result.ocs.data.exact.users.concat(result.ocs.data.users);
+						var groups = result.ocs.data.exact.groups.concat(result.ocs.data.groups);
 						var remotes = result.ocs.data.exact.remotes.concat(result.ocs.data.remotes);
 
 						var usersLength;
@@ -216,7 +219,7 @@
 
 						//Filter out the current user
 						usersLength = users.length;
-						for (i = 0 ; i < usersLength; i++) {
+						for (i = 0; i < usersLength; i++) {
 							if (users[i].value.shareWith === OC.currentUser) {
 								users.splice(i, 1);
 								break;
@@ -226,7 +229,7 @@
 						// Filter out the owner of the share
 						if (view.model.hasReshare()) {
 							usersLength = users.length;
-							for (i = 0 ; i < usersLength; i++) {
+							for (i = 0; i < usersLength; i++) {
 								if (users[i].value.shareWith === view.model.getReshareOwner()) {
 									users.splice(i, 1);
 									break;
@@ -323,9 +326,9 @@
 								.autocomplete("option", "autoFocus", true);
 							response(suggestions, result);
 						} else {
-							var title = t('core', 'No users or groups found for {search}', {search: $('.shareWithField').val()});
+							var title = t('core', 'No users or groups found for {search}', { search: $('.shareWithField').val() });
 							if (!view.configModel.get('allowGroupSharing')) {
-								title = t('core', 'No users found for {search}', {search: $('.shareWithField').val()});
+								title = t('core', 'No users found for {search}', { search: $('.shareWithField').val() });
 							}
 							var suggestStarts = OC.getCapabilities().files_sharing.search_min_length;
 							if (suggestStarts > $('.shareWithField').val().length) {
@@ -334,7 +337,7 @@
 									'Please enter at least {chars} character for suggestions',
 									'Please enter at least {chars} characters for suggestions',
 									suggestStarts,
-									{chars: suggestStarts}
+									{ chars: suggestStarts }
 								);
 							}
 							view._displayError(title);
@@ -344,7 +347,7 @@
 						response(undefined, result);
 					}
 				}
-			).fail(function() {
+			).fail(function () {
 				$loading.addClass('hidden');
 				$loading.removeClass('inlineblock');
 				OC.Notification.show(t('core', 'An error occurred. Please try again'));
@@ -352,20 +355,23 @@
 			});
 		},
 
-		autocompleteRenderItem: function(ul, item) {
+		autocompleteRenderItem: function (ul, item) {
+			// its added to share.js 
+			// this is just for backward compatibility(just in time share.js gets change)
+			OC.Share.SHARE_TYPE_REMOTE_GROUP = 7
+			
 			var text = item.label;
 
 			var typeInfo = t('core', 'User');
-
-			if (item.label.startsWith("G_")) {
-				typeInfo = t('core', 'Group');
-			}
 
 			if (item.batch) {
 				typeInfo = this._getBatchActionLabel();
 			}
 			if (item.value.shareType === OC.Share.SHARE_TYPE_GROUP) {
 				typeInfo = t('core', 'Group');
+			}
+			if (item.value.shareType === OC.Share.SHARE_TYPE_REMOTE_GROUP) {
+				typeInfo = t('core', 'Remote Group');
 			}
 			if (item.value.shareType === OC.Share.SHARE_TYPE_GUEST) {
 				typeInfo = t('core', 'Guest');
@@ -379,7 +385,7 @@
 					typeInfo = t('core', 'Federated');
 				}
 			}
-			if(item.value.userType === OC.User.USER_TYPE_GUEST){
+			if (item.value.userType === OC.User.USER_TYPE_GUEST) {
 				typeInfo = t('core', 'Guest');
 			}
 
@@ -387,12 +393,14 @@
 			var $el = $(template({
 				showAvatar: this.configModel.areAvatarsEnabled(),
 				displayName: text,
+				showIcon: Boolean(item.value.shareType === 7),
+				iconClass: item.value.shareType === 7 && "group",
 				typeInfo: typeInfo,
 				additionalInfo: item.value.shareWithAdditionalInfo,
 				shareTypeClass: (item.value.shareType === OC.Share.SHARE_TYPE_GROUP) ? 'group' : 'user'
 			}));
 
-			if(this.configModel.areAvatarsEnabled()) {
+			if (this.configModel.areAvatarsEnabled()) {
 				var $avatar = $el.find('.avatardiv');
 				if (item.value.shareType === OC.Share.SHARE_TYPE_USER) {
 					$avatar.avatar(item.value.shareWith, 32, undefined, undefined, undefined, item.label);
@@ -404,7 +412,7 @@
 			return $el.appendTo(ul);
 		},
 
-		_onSelectRecipient: function(e, s) {
+		_onSelectRecipient: function (e, s) {
 			e.preventDefault();
 			$(e.target).attr('disabled', true)
 				.val(s.item.label);
@@ -431,20 +439,20 @@
 			}
 		},
 
-		_toggleLoading: function(state) {
+		_toggleLoading: function (state) {
 			this._loading = state;
 			this.$el.find('.localShareView, .noSharingPlaceholder').toggleClass('hidden', state);
 			this.$el.find('.loading').toggleClass('hidden', !state);
 		},
 
-		_onRequest: function() {
+		_onRequest: function () {
 			// only show the loading spinner for the first request (for now)
 			if (!this._loadingOnce) {
 				this._toggleLoading(true);
 			}
 		},
 
-		_onEndRequest: function() {
+		_onEndRequest: function () {
 			var self = this;
 			this._toggleLoading(false);
 			if (!this._loadingOnce) {
@@ -458,7 +466,7 @@
 			}
 		},
 
-		render: function() {
+		render: function () {
 			var baseTemplate = this._getTemplate('base', TEMPLATE_BASE);
 
 			this.$el.html(baseTemplate({
@@ -478,7 +486,7 @@
 				$shareField.autocomplete({
 					minLength: 1,
 					delay: 750,
-					focus: function(event) {
+					focus: function (event) {
 						event.preventDefault();
 					},
 					source: this.autocompleteHandler,
@@ -503,9 +511,9 @@
 			return this;
 		},
 
-		_renderRemoteShareInfoPart: function() {
+		_renderRemoteShareInfoPart: function () {
 			var remoteShareInfo = '';
-			if(this.configModel.get('isRemoteShareAllowed')) {
+			if (this.configModel.get('isRemoteShareAllowed')) {
 				var infoTemplate = this._getRemoteShareInfoTemplate();
 				remoteShareInfo = infoTemplate({
 					docLink: this.configModel.getFederatedShareDocLink(),
@@ -526,7 +534,7 @@
 					sharePlaceholder = t('core', 'Share with users or groups…')
 				}
 			} else if (this.configModel.get('isRemoteShareAllowed')) {
-					sharePlaceholder = t('core', 'Share with users or federated users…');
+				sharePlaceholder = t('core', 'Share with users or federated users…');
 			}
 
 			return sharePlaceholder;
@@ -552,7 +560,7 @@
 		 * @returns {Function}
 		 * @private
 		 */
-		_getRemoteShareInfoTemplate: function() {
+		_getRemoteShareInfoTemplate: function () {
 			return this._getTemplate('remoteShareInfo', TEMPLATE_REMOTE_SHARE_INFO);
 		},
 
@@ -562,7 +570,7 @@
 		 * @returns {Function}
 		 * @private
 		 */
-		_getAutocompleteItemTemplate: function() {
+		_getAutocompleteItemTemplate: function () {
 			return this._getTemplate('autocompleteItem', TEMPLATE_AUTOCOMPLETE_ITEM);
 		},
 
@@ -572,11 +580,11 @@
 		 * @param {Array.<String>} users
 		 * @private
 		 */
-		_showFailedBatchSharees: function(users) {
+		_showFailedBatchSharees: function (users) {
 			var failedUsersStr = users.join(', ');
 			OC.Notification.show(
-				t('core', 'Could not be shared with the following users: {users}', {users: failedUsersStr}),
-				{type: 'error'}
+				t('core', 'Could not be shared with the following users: {users}', { users: failedUsersStr }),
+				{ type: 'error' }
 			);
 		},
 
@@ -586,7 +594,7 @@
 		 * @returns {string}
 		 * @private
 		 */
-		_getBatchActionLabel: function() {
+		_getBatchActionLabel: function () {
 			return t('core', 'Add multiple users');
 		},
 
@@ -596,7 +604,7 @@
 		 * @param {string} title - title of the error
 		 * @private
 		 */
-		_displayError: function(title) {
+		_displayError: function (title) {
 			$('.shareWithField').addClass('error')
 				.attr('data-original-title', title)
 				.tooltip('hide')
@@ -615,7 +623,7 @@
 		 * @returns {Promise}
 		 * @private
 		 */
-		_getUsersForBatchAction: function(search) {
+		_getUsersForBatchAction: function (search) {
 			var view = this;
 			var foundUsers = [];
 			var notFound = [];
@@ -640,36 +648,36 @@
 						},
 						context: { user: user }
 					})
-					.done(function (result) {
-						if (result.ocs.data.exact.users.length) {
-							var addShare = true;
-							var shares = view.model.get('shares');
-							if (!shares.length) {
-								foundUsers.push(result.ocs.data.exact.users[0].value);
-								return;
-							}
-
-							// filter out all sharees that are already shared with
-							for (j= 0; j < shares.length; j++) {
-								if (shares[j].share_type === OC.Share.SHARE_TYPE_USER
-									&& result.ocs.data.exact.users[0].value.shareWith === shares[j].share_with) {
-									addShare = false;
-									break;
+						.done(function (result) {
+							if (result.ocs.data.exact.users.length) {
+								var addShare = true;
+								var shares = view.model.get('shares');
+								if (!shares.length) {
+									foundUsers.push(result.ocs.data.exact.users[0].value);
+									return;
 								}
-							}
 
-							if (addShare) {
-								foundUsers.push(result.ocs.data.exact.users[0].value);
+								// filter out all sharees that are already shared with
+								for (j = 0; j < shares.length; j++) {
+									if (shares[j].share_type === OC.Share.SHARE_TYPE_USER
+										&& result.ocs.data.exact.users[0].value.shareWith === shares[j].share_with) {
+										addShare = false;
+										break;
+									}
+								}
+
+								if (addShare) {
+									foundUsers.push(result.ocs.data.exact.users[0].value);
+								}
+							} else {
+								notFound.push(this.user);
 							}
-						} else {
-							notFound.push(this.user);
-						}
-					})
+						})
 				);
 			}
 
-			return Promise.all(promises).then(function() {
-				return {found: foundUsers, notFound: notFound};
+			return Promise.all(promises).then(function () {
+				return { found: foundUsers, notFound: notFound };
 			});
 		}
 	});
