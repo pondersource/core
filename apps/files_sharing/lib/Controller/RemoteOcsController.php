@@ -38,6 +38,9 @@ class RemoteOcsController extends OCSController {
 	/** @var Manager */
 	protected $externalManager;
 
+	/** @var \OCA\Files_Sharing\External\Manager */
+	protected $groupExternalManager;
+
 	/** @var string */
 	protected $uid;
 
@@ -58,6 +61,9 @@ class RemoteOcsController extends OCSController {
 		parent::__construct($appName, $request);
 		$this->request = $request;
 		$this->externalManager = $externalManager;
+		if (\OC::$server->getAppManager()->isEnabledForUser('federatedgroups')) {
+			$this->groupExternalManager = \OCA\FederatedGroups\AppInfo\Application::getExternalManager();
+		}
 		$this->uid = $uid;
 	}
 
@@ -82,41 +88,19 @@ class RemoteOcsController extends OCSController {
 	 */
 	public function acceptShare($id) {
 		$shareType = $this->request->getParam('shareType', null);
+		$manager = $this->getRelatedManager($shareType);
 
-		if ($shareType == "group") {
-			$a = \OC::$server->getDatabaseConnection();
-			$b = \OC\Files\Filesystem::getMountManager();
-			$c = \OC\Files\Filesystem::getLoader();
-			$d = \OC::$server->getNotificationManager();
-			$e = \OC::$server->getEventDispatcher();
-			$f = $this->uid;
-			$externalGroupManager = new \OCA\FederatedGroups\FilesSharing\External\Manager($a, $b, $c, $d, $e, $f);
-
-			if ($externalGroupManager->acceptShare((int) $id)) {
-				$share = $externalGroupManager->getShare($id);
-				// Frontend part expects a list of accepted shares having state and mountpoint at least
-				return new Result(
+		if ($manager->acceptShare((int) $id)) {
+			$share = $manager->getShare($id);
+			// Frontend part expects a list of accepted shares having state and mountpoint at least
+			return new Result(
+				[
 					[
-						[
-							'state' => Share::STATE_ACCEPTED,
-							'file_target' => $share['mountpoint']
-						]
+						'state' => Share::STATE_ACCEPTED,
+						'file_target' => $share['mountpoint']
 					]
-				);
-			}
-		} else {
-			if ($this->externalManager->acceptShare((int) $id)) {
-				$share = $this->externalManager->getShare($id);
-				// Frontend part expects a list of accepted shares having state and mountpoint at least
-				return new Result(
-					[
-						[
-							'state' => Share::STATE_ACCEPTED,
-							'file_target' => $share['mountpoint']
-						]
-					]
-				);
-			}
+				]
+			);
 		}
 
 		// Make sure the user has no notification for something that does not exist anymore.
@@ -134,24 +118,10 @@ class RemoteOcsController extends OCSController {
 	 */
 	public function declineShare($id) {
 		$shareType = $this->request->getParam('shareType', null);
+		$manager = $this->getRelatedManager($shareType);
 
-		if ($shareType == "group") {
-			$a = \OC::$server->getDatabaseConnection();
-			$b = \OC\Files\Filesystem::getMountManager();
-			$c = \OC\Files\Filesystem::getLoader();
-			$d = \OC::$server->getNotificationManager();
-			$e = \OC::$server->getEventDispatcher();
-			$f = $this->uid;
-			$externalGroupManager = new \OCA\FederatedGroups\FilesSharing\External\Manager($a, $b, $c, $d, $e, $f);
-			if ($externalGroupManager->declineShare((int) $id)) {
-				if($externalGroupManager->getShare($id)){
-					return new Result();
-				}
-			}
-		} else {
-			if ($this->externalManager->declineShare((int) $id)) {
-				return new Result();
-			}
+		if ($manager->declineShare((int) $id)) {
+			return new Result();
 		}
 
 		// Make sure the user has no notification for something that does not exist anymore.
@@ -285,6 +255,14 @@ class RemoteOcsController extends OCSController {
 			$share['file_id'] = $info->getId();
 		}
 		return $share;
+	}
+
+	private function getRelatedManager(string $share_type): Manager {
+		if ($share_type === "group" && $this->groupExternalManager !== null) {
+			return $this->groupExternalManager;
+		} else {
+			return $this->externalManager;
+		}
 	}
 
 	/**
