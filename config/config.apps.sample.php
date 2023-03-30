@@ -469,6 +469,17 @@ $CONFIG = [
 ],
 
 /**
+ * App: Share Files
+ *
+ * Possible keys: `files_sharing.ocsMiddleware` STRING
+ */
+
+/**
+ * The middleware class name for RemoteOcsController
+ */
+'files_sharing.ocsMiddleware' => 'OCA\Files_Sharing\Middleware\RemoteOcsMiddleware',
+
+/**
  * App: Windows Network Drive (WND)
  *
  * Note: This app is for Enterprise customers only.

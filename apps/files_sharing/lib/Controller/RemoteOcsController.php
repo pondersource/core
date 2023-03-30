@@ -25,6 +25,7 @@ use OC\Files\View;
 use OC\OCS\Result;
 use OCA\Files_Sharing\External\Manager;
 use OCP\AppFramework\OCSController;
+use OCP\IConfig;
 use OCP\IRequest;
 use OCP\Share;
 use OCP\Files\StorageNotAvailableException;
@@ -33,6 +34,9 @@ use OCP\Files\StorageInvalidException;
 class RemoteOcsController extends OCSController {
 	/** @var IRequest */
 	protected $request;
+
+	/** @var IConfig */
+	protected $config;
 
 	/** @var Manager */
 	protected $externalManager;
@@ -45,17 +49,20 @@ class RemoteOcsController extends OCSController {
 	 *
 	 * @param string $appName
 	 * @param IRequest $request
+	 * @param IConfig $config
 	 * @param Manager $externalManager
 	 * @param string $uid
 	 */
 	public function __construct(
 		$appName,
 		IRequest $request,
+		IConfig $config,
 		Manager $externalManager,
 		$uid
 	) {
 		parent::__construct($appName, $request);
 		$this->request = $request;
+		$this->config = $config;
 		$this->externalManager = $externalManager;
 		$this->uid = $uid;
 	}
@@ -125,19 +132,11 @@ class RemoteOcsController extends OCSController {
 	 * @return Result
 	 */
 	public function getShares($includingPending = false) {
-		if (\OC::$server->getAppManager()->isEnabledForUser('federatedgroups')) {
-			error_log("in core RemoteOcsController yes");
-			$controller = \OCA\FederatedGroups\AppInfo\Application::getRemoteOcsController(
-				$this->request,
-				$this->externalManager,
-				$this->uid
-			);
-			error_log("got controller");
-			return $controller->getShares($includingPending);
-		}
+		$remoteOcsMiddlewareClass = $this->config->getSystemValue('files_sharing.ocsMiddleware', 'OCA\Files_Sharing\Middleware\RemoteOcsMiddleware');
+		$remoteOcsMiddleware = \OC::$server->query($remoteOcsMiddlewareClass);
 
 		$shares = [];
-		foreach ($this->externalManager->getAcceptedShares() as $shareInfo) {
+		foreach ($remoteOcsMiddleware->getAcceptedShares() as $shareInfo) {
 			try {
 				$shares[] = $this->extendShareInfo($shareInfo);
 			} catch (StorageNotAvailableException $e) {
@@ -163,7 +162,7 @@ class RemoteOcsController extends OCSController {
 					$share['mountpoint'] = \rtrim($share['mountpoint'], '}');
 					return $share;
 				},
-				$this->externalManager->getOpenShares()
+				$remoteOcsMiddleware->getOpenShares()
 			);
 			$shares = \array_merge($shares, $openShares);
 		}
