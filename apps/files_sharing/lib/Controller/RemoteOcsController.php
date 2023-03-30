@@ -80,18 +80,6 @@ class RemoteOcsController extends OCSController {
 	 * @return Result
 	 */
 	public function acceptShare($id) {
-		$shareType = $this->request->getParam('shareType', null);
-
-		// error_log("==============================");
-		// error_log($shareType);
-		// error_log("==============================");
-		// decide what manager to use
-		// switch ($shareType) {
-		// 	case "group":
-		// 	  	break;
-		// 	default:
-		// }
-
 		if ($this->externalManager->acceptShare((int) $id)) {
 			$share = $this->externalManager->getShare($id);
 			// Frontend part expects a list of accepted shares having state and mountpoint at least
@@ -119,12 +107,6 @@ class RemoteOcsController extends OCSController {
 	 * @return Result
 	 */
 	public function declineShare($id) {
-		$shareType = $this->request->getParam('shareType', null);
-
-		// error_log("==============================");
-		// error_log($shareType);
-		// error_log("==============================");
-
 		if ($this->externalManager->declineShare((int) $id)) {
 			return new Result();
 		}
@@ -143,9 +125,6 @@ class RemoteOcsController extends OCSController {
 	 * @return Result
 	 */
 	public function getShares($includingPending = false) {
-		// https://oc2.docker/ocs/v1.php/apps/files_sharing/api/v1/remote_shares/all?format=json&include_tags=true
-		// Allow the Federated Groups app to overwrite the behaviour of this endpoint
-		error_log("HELLO in core RemoteOcsController " . (\OC::$server->getAppManager()->isEnabledForUser('federatedgroups') ? 'yes' : 'no'));
 		if (\OC::$server->getAppManager()->isEnabledForUser('federatedgroups')) {
 			error_log("in core RemoteOcsController yes");
 			$controller = \OCA\FederatedGroups\AppInfo\Application::getRemoteOcsController(
@@ -155,8 +134,6 @@ class RemoteOcsController extends OCSController {
 			);
 			error_log("got controller");
 			return $controller->getShares($includingPending);
-		} else {
-			error_log("in core RemoteOcsController no");
 		}
 
 		$shares = [];
