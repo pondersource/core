@@ -132,6 +132,7 @@ class RemoteOcsController extends OCSController {
 	 * @return Result
 	 */
 	public function getShares($includingPending = false) {
+		// Other applications like OpenCloudMesh provide their own version of RemoteOcsMiddleware.
 		$remoteOcsMiddlewareClass = $this->config->getSystemValue('files_sharing.ocsMiddleware', 'OCA\Files_Sharing\Middleware\RemoteOcsMiddleware');
 		$remoteOcsMiddleware = \OC::$server->query($remoteOcsMiddlewareClass);
 
