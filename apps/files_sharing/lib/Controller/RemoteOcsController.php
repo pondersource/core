@@ -25,7 +25,6 @@ use OC\Files\View;
 use OC\OCS\Result;
 use OCA\Files_Sharing\External\Manager;
 use OCP\AppFramework\OCSController;
-use OCP\IConfig;
 use OCP\IRequest;
 use OCP\Share;
 use OCP\Files\StorageNotAvailableException;
@@ -34,9 +33,6 @@ use OCP\Files\StorageInvalidException;
 class RemoteOcsController extends OCSController {
 	/** @var IRequest */
 	protected $request;
-
-	/** @var IConfig */
-	protected $config;
 
 	/** @var Manager */
 	protected $externalManager;
@@ -49,20 +45,17 @@ class RemoteOcsController extends OCSController {
 	 *
 	 * @param string $appName
 	 * @param IRequest $request
-	 * @param IConfig $config
 	 * @param Manager $externalManager
 	 * @param string $uid
 	 */
 	public function __construct(
 		$appName,
 		IRequest $request,
-		IConfig $config,
 		Manager $externalManager,
 		$uid
 	) {
 		parent::__construct($appName, $request);
 		$this->request = $request;
-		$this->config = $config;
 		$this->externalManager = $externalManager;
 		$this->uid = $uid;
 	}
@@ -132,12 +125,8 @@ class RemoteOcsController extends OCSController {
 	 * @return Result
 	 */
 	public function getShares($includingPending = false) {
-		// Other applications like OpenCloudMesh provide their own version of RemoteOcsMiddleware.
-		$remoteOcsMiddlewareClass = $this->config->getSystemValue('files_sharing.ocsMiddleware', 'OCA\Files_Sharing\Middleware\RemoteOcsMiddleware');
-		$remoteOcsMiddleware = \OC::$server->query($remoteOcsMiddlewareClass);
-
 		$shares = [];
-		foreach ($remoteOcsMiddleware->getAcceptedShares() as $shareInfo) {
+		foreach ($this->externalManager->getAcceptedShares() as $shareInfo) {
 			try {
 				$shares[] = $this->extendShareInfo($shareInfo);
 			} catch (StorageNotAvailableException $e) {
@@ -163,7 +152,7 @@ class RemoteOcsController extends OCSController {
 					$share['mountpoint'] = \rtrim($share['mountpoint'], '}');
 					return $share;
 				},
-				$remoteOcsMiddleware->getOpenShares()
+				$this->externalManager->getOpenShares()
 			);
 			$shares = \array_merge($shares, $openShares);
 		}
