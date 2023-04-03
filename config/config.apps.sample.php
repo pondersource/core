@@ -54,6 +54,12 @@ $CONFIG = [
 'admin_audit.groups' => ['group1', 'group2'],
 
 /**
+ * App: Federated File Sharing
+ *
+ * Possible keys: `federatedfilesharing.fedShareManager` STRING
+ */
+
+/**
  * App: Files Antivirus
  *
  * Possible keys: `files_antivirus.av_path` STRING

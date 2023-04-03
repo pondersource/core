@@ -178,26 +178,6 @@ class OcmController extends Controller {
 		$resourceType,
 		$protocol
 	) {
-		// Allow the Federated Groups app to overwrite the behaviour of this endpoint (but only for group shares)
-		error_log("in core OcmController $shareType " . (\OC::$server->getAppManager()->isEnabledForUser('federatedgroups') ? 'yes' : 'no'));
-		if (\OC::$server->getAppManager()->isEnabledForUser('federatedgroups') && ($shareType === 'group')) {
-			error_log("in core OcmController yes");
-			$controller = \OCA\FederatedGroups\AppInfo\Application::getOcmController($this->request);
-			return $controller->createShare(
-				$shareWith,
-				$name,
-				$description,
-				$providerId,
-				$owner,
-				$ownerDisplayName,
-				$sender,
-				$senderDisplayName,
-				$shareType,
-				$resourceType,
-				$protocol
-			);
-		}
-		error_log("in core OcmController no");
 		try {
 			$this->ocmMiddleware->assertIncomingSharingEnabled();
 			$this->ocmMiddleware->assertNotNull(
@@ -232,10 +212,20 @@ class OcmController extends Controller {
 				);
 			}
 
-			if ($this->isSupportedShareType($shareType) === false) {
-				throw new NotImplementedException(
-					"ShareType {$shareType} is not supported"
-				);
+			$fedShareManager = $this->fedShareManager;
+
+			if ($fedShareManager->isSupportedShareType($shareType) === false) {
+				// Other applications like OpenCloudMesh provide their own version of AbstractFedShareManager.
+				$fedShareManagerClass = $this->config->getSystemValue('federatedfilesharing.fedShareManager', '');
+				
+				if (!empty($fedShareManagerClass)) {
+					$fedShareManager = \OC::$server->query($fedShareManagerClass);
+				}
+				else {
+					throw new NotImplementedException(
+						"ShareType {$shareType} is not supported"
+					);
+				}
 			}
 
 			if ($this->isSupportedResourceType($resourceType) === false) {
@@ -246,14 +236,14 @@ class OcmController extends Controller {
 
 			$shareWithAddress = new Address($shareWith);
 			$localShareWith = $shareWithAddress->toLocalUid();
-			if (!$this->userManager->userExists($localShareWith)) {
-				throw new BadRequestException("User $localShareWith does not exist");
+			if (!$fedShareManager->localShareWithExists($localShareWith)) {
+				throw new BadRequestException("Share target $localShareWith does not exist");
 			}
 
 			$ownerAddress = new Address($owner, $ownerDisplayName);
 			$sharedByAddress = new Address($sender, $senderDisplayName);
 
-			$this->fedShareManager->createShare(
+			$fedShareManager->createShare(
 				$ownerAddress,
 				$sharedByAddress,
 				$localShareWith,
@@ -305,7 +295,6 @@ class OcmController extends Controller {
 		$providerId,
 		$notification
 	) {
-		error_log("=================>>>>>". get_class($this->fedShareManager));
 		try {
 			if (!\is_array($notification)) {
 				throw new BadRequestException(
@@ -393,7 +382,6 @@ class OcmController extends Controller {
 						$providerId,
 						$notification['sharedSecret']
 					);
-					///Todo: probably we have problem on this action	
 					$this->fedShareManager->updateOcmPermissions(
 						$share,
 						$notification['permission']
@@ -401,19 +389,26 @@ class OcmController extends Controller {
 					break;
 				case FileNotification::NOTIFICATION_TYPE_SHARE_UNSHARED:
 					{	
-						try{
+						try {
 							$this->fedShareManager->unshare(
 								$providerId,
 								$notification['sharedSecret']
 							);
-						}catch(ShareNotFound $ex){
+						} catch(ShareNotFound $e1) {
+							// Other applications like OpenCloudMesh provide their own version of AbstractFedShareManager.
+							$fedShareManagerClass = $this->config->getSystemValue('federatedfilesharing.fedShareManager', '');
 							
-							if (\OC::$server->getAppManager()->isEnabledForUser('federatedgroups')) {
-								$groupFedShareManager = \OCA\FederatedGroups\AppInfo\Application::getFedSharemanager();
-								$groupFedShareManager->unshare(
-									$providerId,
-									$notification['sharedSecret']
-								);
+							if (!empty($fedShareManagerClass)) {
+								$fedShareManager = \OC::$server->query($fedShareManagerClass);
+
+								try {
+									$fedShareManager->unshare(
+										$providerId,
+										$notification['sharedSecret']
+									);
+								} catch(ShareNotFound $e2) {
+									// Ignoring failures
+								}
 							}
 						}
 						break;
