@@ -53,7 +53,7 @@
 			'<a>' +
 				'<div class="share-autocomplete-item">' +
 					'{{#if showAvatar}}' +
-						'<div class="avatardiv"></div>' +
+					'<div class="avatardiv"></div>' +
 					'{{/if}}' +
 					'<div class="autocomplete-item-text">' +
 						'<span class="autocomplete-item-displayname">{{displayName}}</span>' +
@@ -63,7 +63,7 @@
 						'<br/><span class="autocomplete-item-typeInfo">{{typeInfo}}</span>' +
 					'</div>' +
 					'{{#if showIcon}}' +
-						'<span class="icon {{iconClass}}"></span>' +
+					'<span class="icon {{iconClass}}"></span>' +
 					'{{/if}}' +
 				'</div>' +
 			'</a>' +
@@ -356,9 +356,6 @@
 		},
 
 		autocompleteRenderItem: function(ul, item) {
-			// its added to share.js 
-			// this is just for backward compatibility(just in time share.js gets change)
-			OC.Share.SHARE_TYPE_REMOTE_GROUP = 7
 
 			var text = item.label;
 			let showIcon = false;
