@@ -212,20 +212,19 @@ class OcmController extends Controller {
 				);
 			}
 
-			$fedShareManager = $this->fedShareManager;
+			// Other applications like OpenCloudMesh provide their own version of AbstractFedShareManager.
+			$fedShareManagerClass = $this->config->getSystemValue('federatedfilesharing.fedShareManager', '');
+
+			if (!empty($fedShareManagerClass)) {
+				$fedShareManager = \OC::$server->query($fedShareManagerClass);
+			} else {
+				$fedShareManager = $this->fedShareManager;
+			}
 
 			if ($fedShareManager->isSupportedShareType($shareType) === false) {
-				// Other applications like OpenCloudMesh provide their own version of AbstractFedShareManager.
-				$fedShareManagerClass = $this->config->getSystemValue('federatedfilesharing.fedShareManager', '');
-				
-				if (!empty($fedShareManagerClass)) {
-					$fedShareManager = \OC::$server->query($fedShareManagerClass);
-				}
-				else {
-					throw new NotImplementedException(
-						"ShareType {$shareType} is not supported"
-					);
-				}
+				throw new NotImplementedException(
+					"ShareType {$shareType} is not supported"
+				);
 			}
 
 			if ($this->isSupportedResourceType($resourceType) === false) {
@@ -388,28 +387,30 @@ class OcmController extends Controller {
 					);
 					break;
 				case FileNotification::NOTIFICATION_TYPE_SHARE_UNSHARED:
-					{	
+					{
+						// Other applications like OpenCloudMesh provide their own version of AbstractFedShareManager.
+						$fedShareManagerClass = $this->config->getSystemValue('federatedfilesharing.fedShareManager', '');
+
+						if (!empty($fedShareManagerClass)) {
+							$fedShareManager = \OC::$server->query($fedShareManagerClass);
+							try {
+								$fedShareManager->unshare(
+									$providerId,
+									$notification['sharedSecret']
+								);
+								break;
+							} catch(ShareNotFound $e2) {
+								// Ignore failure to move on to the default implementation
+							}
+						}
+						
 						try {
 							$this->fedShareManager->unshare(
 								$providerId,
 								$notification['sharedSecret']
 							);
 						} catch(ShareNotFound $e1) {
-							// Other applications like OpenCloudMesh provide their own version of AbstractFedShareManager.
-							$fedShareManagerClass = $this->config->getSystemValue('federatedfilesharing.fedShareManager', '');
-							
-							if (!empty($fedShareManagerClass)) {
-								$fedShareManager = \OC::$server->query($fedShareManagerClass);
-
-								try {
-									$fedShareManager->unshare(
-										$providerId,
-										$notification['sharedSecret']
-									);
-								} catch(ShareNotFound $e2) {
-									// Ignoring failures
-								}
-							}
+							// Ignoring failure
 						}
 						break;
 					}
