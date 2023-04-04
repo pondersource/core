@@ -217,6 +217,10 @@ class OcmController extends Controller {
 
 			if (!empty($fedShareManagerClass)) {
 				$fedShareManager = \OC::$server->query($fedShareManagerClass);
+
+				if ($fedShareManager->isSupportedShareType($shareType) === false) {
+					$fedShareManager = $this->fedShareManager;
+				}
 			} else {
 				$fedShareManager = $this->fedShareManager;
 			}
