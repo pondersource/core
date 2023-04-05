@@ -631,7 +631,6 @@ abstract class AbstractFederatedShareProvider implements IShareProvider {
 		$qb->select('*')
 			->from($this->shareTable);
 
-		// In federated sharing currently we have only one share_type_remote
 		$qb->andWhere($qb->expr()->eq('share_type', $qb->createNamedParameter($this->shareType)));
 
 		$qb->andWhere($qb->expr()->in('file_source', $qb->createParameter('file_source_ids')));
@@ -1018,7 +1017,7 @@ abstract class AbstractFederatedShareProvider implements IShareProvider {
 		$qb = $this->dbConnection->getQueryBuilder();
 
 		$qb->delete($this->shareTable)
-			->where($qb->expr()->eq('share_type', $qb->createNamedParameter(\OCP\Share::SHARE_TYPE_REMOTE)))
+			->where($qb->expr()->eq('share_type', $qb->createNamedParameter($this->shareType)))
 			->andWhere($qb->expr()->eq('uid_owner', $qb->createNamedParameter($uid)))
 			->execute();
 	}
@@ -1192,7 +1191,7 @@ abstract class AbstractFederatedShareProvider implements IShareProvider {
 	 */
 	public function getProviderCapabilities() {
 		return [
-			\OCP\Share::CONVERT_SHARE_TYPE_TO_STRING[\OCP\Share::SHARE_TYPE_REMOTE] => [
+			\OCP\Share::CONVERT_SHARE_TYPE_TO_STRING[$this->shareType] => [
 				IShareProvider::CAPABILITY_STORE_EXPIRATION,
 			],
 		];
