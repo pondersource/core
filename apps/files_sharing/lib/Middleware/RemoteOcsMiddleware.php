@@ -51,4 +51,12 @@ class RemoteOcsMiddleware implements IRemoteOcsMiddleware {
 	public function getOpenShares() {
 		return $this->externalManager->getOpenShares();
 	}
+
+	public function getExternalManagerForShareType($shareType) {
+		if ($shareType === 'user') {
+			return $this->externalManager;
+		}
+
+		throw new \Exception('Share type not supported');
+	}
 }

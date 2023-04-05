@@ -25,6 +25,7 @@
 
 namespace OCA\Files_Sharing\Controllers;
 
+use OCA\Files_Sharing\Middleware\IRemoteOcsMiddleware;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\JSONResponse;
@@ -39,11 +40,8 @@ use Symfony\Component\EventDispatcher\GenericEvent;
  * @package OCA\Files_Sharing\Controllers
  */
 class ExternalSharesController extends Controller {
-
-	/** @var \OCA\Files_Sharing\External\Manager */
-	private $externalManager;
-	/** @var \OCA\Files_Sharing\External\Manager */
-	private $groupExternalManager = null;
+	/** @var IRemoteOcsMiddleware */
+	private $remoteOcsMiddleware;
 	/** @var IClientService */
 	private $clientService;
 	/**
@@ -56,25 +54,22 @@ class ExternalSharesController extends Controller {
 	 *
 	 * @param string $appName
 	 * @param IRequest $request
-	 * @param \OCA\Files_Sharing\External\Manager $externalManager
 	 * @param IClientService $clientService
 	 * @param EventDispatcherInterface $eventDispatcher
 	 */
 	public function __construct(
 		$appName,
 		IRequest $request,
-		\OCA\Files_Sharing\External\Manager $externalManager,
 		IClientService $clientService,
 		EventDispatcherInterface $eventDispatcher
 	) {
 		parent::__construct($appName, $request);
-		error_log("external shares controller construct");
-		$this->externalManager = $externalManager;
 		$this->clientService = $clientService;
 		$this->dispatcher = $eventDispatcher;
-		if (\OC::$server->getAppManager()->isEnabledForUser('federatedgroups')) {
-			$this->groupExternalManager  = \OCA\FederatedGroups\AppInfo\Application::getExternalManager("group");
-		}
+
+		// Other applications like OpenCloudMesh provide their own version of RemoteOcsMiddleware.
+		$remoteOcsMiddlewareClass = $this->config->getSystemValue('files_sharing.ocsMiddleware', 'OCA\Files_Sharing\Middleware\RemoteOcsMiddleware');
+		$this->remoteOcsMiddleware = \OC::$server->query($remoteOcsMiddlewareClass);
 	}
 
 	/**
@@ -84,14 +79,7 @@ class ExternalSharesController extends Controller {
 	 * @return JSONResponse
 	 */
 	public function index() {
-		error_log("external shares controller index");
-
-		$federatedGroupResult = [];
-		if ($this->groupExternalManager !== null) {
-			$federatedGroupResult = $this->groupExternalManager->getOpenShares();
-		}
-		$result = array_merge($federatedGroupResult,  $this->externalManager->getOpenShares());
-		return new JSONResponse($result);
+		return new JSONResponse($this->remoteOcsMiddleware->getOpenShares());
 	}
 
 	/**
@@ -102,7 +90,7 @@ class ExternalSharesController extends Controller {
 	 * @return JSONResponse
 	 */
 	public function create($id, $share_type) {
-		$manager = $this->getRelatedManager($share_type);
+		$manager = $this->remoteOcsMiddleware->getExternalManagerForShareType($share_type);
 		$shareInfo = $manager->getShare($id);
 		
 		if ($shareInfo !== false) {
@@ -121,7 +109,7 @@ class ExternalSharesController extends Controller {
 					'shareRecipient' => $shareInfo['user'],
 				]
 			);
-			$this->dispatcher->dispatch($event, 'remoteshare.accepted', $event);
+			$this->dispatcher->dispatch($event, 'remoteshare.accepted');
 			$manager->acceptShare($id);
 		}
 		return new JSONResponse();
@@ -135,7 +123,7 @@ class ExternalSharesController extends Controller {
 	 * @return JSONResponse
 	 */
 	public function destroy($id, $share_type) {
-		$manager = $this->getRelatedManager($share_type);  
+		$manager = $this->remoteOcsMiddleware->getExternalManagerForShareType($share_type);
 		$shareInfo = $manager->getShare($id);
 		if ($shareInfo !== false) {
 			$event = new GenericEvent(
@@ -151,16 +139,6 @@ class ExternalSharesController extends Controller {
 			$manager->declineShare($id);
 		}
 		return new JSONResponse();
-	}
-
-	private function getRelatedManager($share_type){
-		if($share_type === "group" && $this->groupExternalManager !== null) {
-			$manager = $this->groupExternalManager;
-		} else {
-			$manager = $this->externalManager;
-		}
-		return $manager;
-
 	}
 
 	/**

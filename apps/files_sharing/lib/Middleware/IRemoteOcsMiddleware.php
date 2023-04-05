@@ -21,6 +21,7 @@
 
 namespace OCA\Files_Sharing\Middleware;
 
+use OCA\Files_Sharing\External\AbstractManager;
 
 /**
  * Defines public methods required by OCA\Files_Sharing\Controller\RemoveOcsController
@@ -41,4 +42,14 @@ interface IRemoteOcsMiddleware {
 	 * @return array list of open server-to-server shares
 	 */
 	public function getOpenShares();
+
+	/**
+	 * return an external manager for the given share type
+	 *
+	 * @param string $shareType
+	 * @return AbstractManager|null
+	 * 
+	 * @throws Exception
+	 */
+	public function getExternalManagerForShareType($shareType);
 }
