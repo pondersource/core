@@ -72,7 +72,7 @@ class Manager extends AbstractManager {
 
 	protected function executeDeclineShareStatement($id) {
 		$removeShare = $this->connection->prepare("
-			DELETE FROM `*PREFIX*$this->tableName` WHERE `id` = ? AND `user` = ?");
+			DELETE FROM `*PREFIX*{$this->tableName}` WHERE `id` = ? AND `user` = ?");
 		$removeShare->execute([$id, $this->uid]);
 	}
 

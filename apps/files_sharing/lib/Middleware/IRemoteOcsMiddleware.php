@@ -24,7 +24,7 @@ namespace OCA\Files_Sharing\Middleware;
 use OCA\Files_Sharing\External\AbstractManager;
 
 /**
- * Defines public methods required by OCA\Files_Sharing\Controller\RemoveOcsController
+ * Wraps the external manager needed by RemoteOcsController and ExternalSharesController.
  *
  * @package OCA\Files_Sharing\Middleware
  */

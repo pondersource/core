@@ -25,8 +25,6 @@ namespace OCA\Files_Sharing\Middleware;
 use OCA\Files_Sharing\External\Manager;
 
 /**
- * Checks whether the "sharing check" is enabled
- *
  * @package OCA\Files_Sharing\Middleware
  */
 class RemoteOcsMiddleware implements IRemoteOcsMiddleware {

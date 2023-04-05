@@ -155,7 +155,7 @@ abstract class AbstractManager {
 			$this->prepareData($data);
 
 			$i = 1;
-			while (!$this->connection->insertIfNotExist("*PREFIX*$this->tableName", $data, ['user', 'mountpoint_hash'])) {
+			while (!$this->connection->insertIfNotExist("*PREFIX*{$this->tableName}", $data, ['user', 'mountpoint_hash'])) {
 				// The external share already exists for the user
 				$data['mountpoint'] = $tmpMountPointName . '-' . $i;
 				$data['mountpoint_hash'] = \md5($data['mountpoint']);
@@ -173,7 +173,7 @@ abstract class AbstractManager {
 		$hash = \md5($mountPoint);
 
 		$query = $this->connection->prepare("
-				INSERT INTO `*PREFIX*$this->tableName`
+				INSERT INTO `*PREFIX*{$this->tableName}`
 					(`remote`, `share_token`, `password`, `name`, `owner`, `user`, `mountpoint`, `mountpoint_hash`, `accepted`, `remote_id`)
 				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 			");
@@ -211,7 +211,7 @@ abstract class AbstractManager {
 	public function getShare($id) {
 		$getShare = $this->connection->prepare("
 			SELECT `id`, `remote`, `remote_id`, `share_token`, `name`, `owner`, `user`, `mountpoint`, `accepted`
-			FROM  `*PREFIX*$this->tableName`
+			FROM  `*PREFIX*{$this->tableName}`
 			WHERE `id` = ? AND `user` = ?");
 		$result = $getShare->execute([$id, $this->uid]);
 
@@ -280,7 +280,7 @@ abstract class AbstractManager {
 			$hash = \md5($mountPoint);
 
 			$acceptShare = $this->connection->prepare("
-				UPDATE `*PREFIX*$this->tableName`
+				UPDATE `*PREFIX*{$this->tableName}`
 				SET `accepted` = ?,
 					`mountpoint` = ?,
 					`mountpoint_hash` = ?
@@ -404,7 +404,7 @@ abstract class AbstractManager {
 		$targetHash = \md5($target);
 
 		$query = $this->connection->prepare("
-			UPDATE `*PREFIX*$this->tableName`
+			UPDATE `*PREFIX*{$this->tableName}`
 			SET `mountpoint` = ?, `mountpoint_hash` = ?
 			WHERE `mountpoint_hash` = ?
 			AND `user` = ?
@@ -447,7 +447,7 @@ abstract class AbstractManager {
 
 		$getShare = $this->connection->prepare("
 			SELECT `remote`, `share_token`, `remote_id`
-			FROM  `*PREFIX*$this->tableName`
+			FROM  `*PREFIX*{$this->tableName}`
 			WHERE `mountpoint_hash` = ? AND `user` = ?");
 		$result = $getShare->execute([$hash, $this->uid]);
 
@@ -463,7 +463,7 @@ abstract class AbstractManager {
 		$getShare->closeCursor();
 
 		$query = $this->connection->prepare("
-			DELETE FROM `*PREFIX*$this->tableName`
+			DELETE FROM `*PREFIX*{$this->tableName}`
 			WHERE `mountpoint_hash` = ?
 			AND `user` = ?
 		");
@@ -509,7 +509,7 @@ abstract class AbstractManager {
 	public function removeUserShares($uid) {
 		$getShare = $this->connection->prepare("
 			SELECT `remote`, `share_token`, `remote_id`
-			FROM  `*PREFIX*$this->tableName`
+			FROM  `*PREFIX*{$this->tableName}`
 			WHERE `user` = ?");
 		$result = $getShare->execute([$uid]);
 
@@ -524,7 +524,7 @@ abstract class AbstractManager {
 		}
 
 		$query = $this->connection->prepare("
-			DELETE FROM `*PREFIX*$this->tableName`
+			DELETE FROM `*PREFIX*{$this->tableName}`
 			WHERE `user` = ?
 		");
 		return (bool)$query->execute([$uid]);
@@ -558,7 +558,7 @@ abstract class AbstractManager {
 	 */
 	private function getShares($accepted) {
 		$query = "SELECT `id`, `remote`, `remote_id`, `share_token`, `name`, `owner`, `user`, `mountpoint`, `accepted`
-		          FROM `*PREFIX*$this->tableName` 
+		          FROM `*PREFIX*{$this->tableName}` 
 				  WHERE `user` = ?";
 		$parameters = [$this->uid];
 		if ($accepted !== null) {
