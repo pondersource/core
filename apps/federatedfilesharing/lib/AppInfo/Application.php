@@ -222,6 +222,8 @@ class Application extends App {
 		$tokenHandler = new TokenHandler(
 			\OC::$server->getSecureRandom()
 		);
+		$sharingApp = new \OCA\Files_Sharing\AppInfo\Application();
+		$externalManager = $sharingApp->getContainer()->query('ExternalManager');
 
 		$this->federatedShareProvider = new FederatedShareProvider(
 			\OC::$server->getDatabaseConnection(),
@@ -233,7 +235,8 @@ class Application extends App {
 			\OC::$server->getLogger(),
 			\OC::$server->getLazyRootFolder(),
 			\OC::$server->getConfig(),
-			\OC::$server->getUserManager()
+			\OC::$server->getUserManager(),
+			$externalManager
 		);
 	}
 
