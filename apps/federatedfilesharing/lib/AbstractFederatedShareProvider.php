@@ -89,8 +89,8 @@ abstract class AbstractFederatedShareProvider implements IShareProvider {
 	/** @var IUserManager */
 	private $userManager;
 
-	/** @var AbstractManager */
-	private $externalManager;
+	/** @var callable */
+	private $externalManagerProvider;
 
 	/**
 	 * AbstractFederatedShareProvider constructor.
@@ -107,7 +107,7 @@ abstract class AbstractFederatedShareProvider implements IShareProvider {
 	 * @param string $externalShareTable
 	 * @param string $shareType Must be one of \OCP\Share share types
 	 * @param IUserManager $userManager
-	 * @param AbstractManager $externalManager
+	 * @param callable $externalManagerProvider
 	 */
 	public function __construct(
 		IDBConnection $connection,
@@ -122,7 +122,7 @@ abstract class AbstractFederatedShareProvider implements IShareProvider {
 		string $externalShareTable,
 		int $shareType,
 		IUserManager $userManager,
-		AbstractManager $externalManager
+		callable $externalManagerProvider
 	) {
 		$this->dbConnection = $connection;
 		$this->eventDispatcher = $eventDispatcher;
@@ -136,7 +136,7 @@ abstract class AbstractFederatedShareProvider implements IShareProvider {
 		$this->externalShareTable = $externalShareTable;
 		$this->shareType = $shareType;
 		$this->userManager = $userManager;
-		$this->externalManager = $externalManager;
+		$this->externalManagerProvider = $externalManagerProvider;
 	}
 
 	/**
@@ -1137,7 +1137,7 @@ abstract class AbstractFederatedShareProvider implements IShareProvider {
 	 */
 	public function addShare($remote, $token, $name, $owner, $shareWith, $remoteId) {
 		\OC_Util::setupFS($shareWith);
-		$this->externalManager->addShare(
+		$this->externalManagerProvider()->addShare(
 			$remote,
 			$token,
 			'',
