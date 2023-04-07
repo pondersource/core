@@ -700,7 +700,7 @@ class Share20OcsController extends OCSController {
 			return new Result();
 		}
 
-		$supportedShareTypes = $this->getSupportedShareTypes();
+		$supportedShareTypes = $this->shareManager->getSupportedShareTypes();
 
 		$sharedWithMe = $this->request->getParam('shared_with_me', null);
 		$reshares = $this->request->getParam('reshares', null);
@@ -1288,22 +1288,5 @@ class Share20OcsController extends OCSController {
 		}
 
 		return $permission;
-	}
-
-	/**
-	 * @return mixed
-	 */
-	private function getSupportedShareTypes() {
-		$providersCapabilities = $this->shareManager->getProvidersCapabilities();
-
-		$shareTypes = [];
-
-		foreach ($providersCapabilities as $capabilities) {
-			$shareTypes = array_merge($shareTypes, array_keys($capabilities));
-		}
-
-		$shareTypes = array_keys(array_intersect(Share::CONVERT_SHARE_TYPE_TO_STRING, $shareTypes));
-
-		return $shareTypes;
 	}
 }

@@ -129,13 +129,7 @@ class SharesPlugin extends \Sabre\DAV\ServerPlugin {
 	 * @return IShare[] array containing shares
 	 */
 	private function getSharesForNodeIds($nodeIDs) {
-		$requestedShareTypes = [
-			\OCP\Share::SHARE_TYPE_USER,
-			\OCP\Share::SHARE_TYPE_GROUP,
-			\OCP\Share::SHARE_TYPE_LINK,
-			\OCP\Share::SHARE_TYPE_REMOTE,
-			\OCP\Share::SHARE_TYPE_REMOTE_GROUP
-		];
+		$requestedShareTypes = $this->shareManager->getSupportedShareTypes();
 
 		// Query DB for share types for specified node IDs
 		$allShares = $this->shareManager->getAllSharesBy(

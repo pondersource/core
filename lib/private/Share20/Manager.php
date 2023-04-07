@@ -1638,6 +1638,16 @@ class Manager implements IManager {
 		return $capabilities;
 	}
 
+	public function getSupportedShareTypes() {
+		$providers = $this->factory->getProviders();
+		$shareTypes = [];
+		foreach ($providers as $provider) {
+			$shareTypes = \array_merge($shareTypes, array_keys($provider->getProviderCapabilities()));
+		}
+		$shareTypes = \array_keys(\array_intersect(Share::CONVERT_SHARE_TYPE_TO_STRING, $shareTypes));
+		return $shareTypes;
+	}
+
 	/**
 	 * @inheritdoc
 	 */

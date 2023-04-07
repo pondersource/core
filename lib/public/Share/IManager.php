@@ -228,6 +228,14 @@ interface IManager {
 	public function getProvidersCapabilities();
 
 	/**
+	 * Return an array of the available share types
+	 *
+	 * @return array
+	 * @since 10.3.2
+	 */
+	public function getSupportedShareTypes();
+
+	/**
 	 * Verify the password of a public share
 	 *
 	 * @param IShare $share
