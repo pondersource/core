@@ -1644,7 +1644,7 @@ class Manager implements IManager {
 		foreach ($providers as $provider) {
 			$shareTypes = \array_merge($shareTypes, array_keys($provider->getProviderCapabilities()));
 		}
-		$shareTypes = \array_keys(\array_intersect(Share::CONVERT_SHARE_TYPE_TO_STRING, $shareTypes));
+		$shareTypes = \array_keys(\array_intersect(\OCP\Share::CONVERT_SHARE_TYPE_TO_STRING, $shareTypes));
 		return $shareTypes;
 	}
 
