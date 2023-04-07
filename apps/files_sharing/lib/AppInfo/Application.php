@@ -79,7 +79,6 @@ class Application extends App {
 			return new ExternalSharesController(
 				$c->query('AppName'),
 				$c->query('Request'),
-				$c->query('ExternalManager'),
 				$c->query('HttpClientService'),
 				$server->getEventDispatcher()
 			);
