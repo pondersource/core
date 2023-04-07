@@ -63,7 +63,7 @@ class FederatedShareProvider extends AbstractFederatedShareProvider {
 	 * @param IRootFolder $rootFolder
 	 * @param IConfig $config
 	 * @param IUserManager $userManager
-	 * @param Manager $externalManager
+	 * @param callable $externalManagerProvider
 	 */
 	public function __construct(
 		IDBConnection $connection,
@@ -76,7 +76,7 @@ class FederatedShareProvider extends AbstractFederatedShareProvider {
 		IRootFolder $rootFolder,
 		IConfig $config,
 		IUserManager $userManager,
-		Manager $externalManager
+		callable $externalManagerProvider
 	) {
 		parent::__construct(
 			$connection,
@@ -91,7 +91,7 @@ class FederatedShareProvider extends AbstractFederatedShareProvider {
 			'share_external',
 			self::SHARE_TYPE_REMOTE,
 			$userManager,
-			$externalManager
+			$externalManagerProvider
 		);
 	}
 
