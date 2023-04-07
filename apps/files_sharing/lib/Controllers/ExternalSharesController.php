@@ -30,6 +30,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Http\Client\IClientService;
+use OCP\IConfig;
 use OCP\IRequest;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
@@ -54,16 +55,19 @@ class ExternalSharesController extends Controller {
 	 *
 	 * @param string $appName
 	 * @param IRequest $request
+	 * @param IConfig $config
 	 * @param IClientService $clientService
 	 * @param EventDispatcherInterface $eventDispatcher
 	 */
 	public function __construct(
 		$appName,
 		IRequest $request,
+		IConfig $config,
 		IClientService $clientService,
 		EventDispatcherInterface $eventDispatcher
 	) {
 		parent::__construct($appName, $request);
+		$this->config = $config;
 		$this->clientService = $clientService;
 		$this->dispatcher = $eventDispatcher;
 

@@ -79,6 +79,7 @@ class Application extends App {
 			return new ExternalSharesController(
 				$c->query('AppName'),
 				$c->query('Request'),
+				$server->getConfig(),
 				$c->query('HttpClientService'),
 				$server->getEventDispatcher()
 			);
@@ -110,6 +111,7 @@ class Application extends App {
 			return new RemoteOcsController(
 				$c->query('AppName'),
 				$server->getRequest(),
+				$server->getConfig(),
 				new Manager(
 					$server->getDatabaseConnection(),
 					Filesystem::getMountManager(),

@@ -32,6 +32,7 @@ use OCA\FederatedFileSharing\FedShareManager;
 use OCA\FederatedFileSharing\Ocm\Exception\OcmException;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
+use OCP\IConfig;
 use OCP\ILogger;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -77,6 +78,11 @@ class OcmController extends Controller {
 	protected $logger;
 
 	/**
+	 * @var IConfig
+	 */
+	protected $config;
+
+	/**
 	 * OcmController constructor.
 	 *
 	 * @param string $appName
@@ -87,6 +93,7 @@ class OcmController extends Controller {
 	 * @param AddressHandler $addressHandler
 	 * @param FedShareManager $fedShareManager
 	 * @param ILogger $logger
+	 * @param IConfig $config
 	 */
 	public function __construct(
 		$appName,
@@ -96,7 +103,8 @@ class OcmController extends Controller {
 		IUserManager $userManager,
 		AddressHandler $addressHandler,
 		FedShareManager $fedShareManager,
-		ILogger $logger
+		ILogger $logger,
+		IConfig $config
 	) {
 		parent::__construct($appName, $request);
 
@@ -106,6 +114,7 @@ class OcmController extends Controller {
 		$this->addressHandler = $addressHandler;
 		$this->fedShareManager = $fedShareManager;
 		$this->logger = $logger;
+		$this->config = $config;
 	}
 
 	/**
