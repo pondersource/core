@@ -483,15 +483,6 @@ class OcmController extends Controller {
 	}
 
 	/**
-	 * @param string $shareType
-	 * @return bool
-	 */
-	protected function isSupportedShareType($shareType) {
-		// TODO: make it a constant
-		return $shareType === 'user';
-	}
-
-	/**
 	 * @param string $protocolName
 	 * @return bool
 	 */

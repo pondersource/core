@@ -23,7 +23,7 @@ namespace OCA\FederatedFileSharing\Middleware;
 
 use OCA\FederatedFileSharing\Address;
 use OCA\FederatedFileSharing\AddressHandler;
-use OCA\FederatedFileSharing\FederatedShareProvider;
+use OCA\FederatedFileSharing\AbstractFederatedShareProvider;
 use OCA\FederatedFileSharing\Ocm\Exception\BadRequestException;
 use OCA\FederatedFileSharing\Ocm\Exception\ForbiddenException;
 use OCA\FederatedFileSharing\Ocm\Exception\NotImplementedException;
@@ -41,7 +41,7 @@ use OCP\Share\IShare;
  */
 class OcmMiddleware {
 	/**
-	 * @var FederatedShareProvider
+	 * @var AbstractFederatedShareProvider
 	 */
 	protected $federatedShareProvider;
 
@@ -68,14 +68,14 @@ class OcmMiddleware {
 	/**
 	 * constructor.
 	 *
-	 * @param FederatedShareProvider $federatedShareProvider
+	 * @param AbstractFederatedShareProvider $federatedShareProvider
 	 * @param IAppManager $appManager
 	 * @param IUserManager $userManager
 	 * @param AddressHandler $addressHandler
 	 * @param ILogger $logger
 	 */
 	public function __construct(
-		FederatedShareProvider $federatedShareProvider,
+		AbstractFederatedShareProvider $federatedShareProvider,
 		IAppManager $appManager,
 		IUserManager $userManager,
 		AddressHandler $addressHandler,
