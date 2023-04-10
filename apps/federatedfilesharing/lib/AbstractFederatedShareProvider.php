@@ -113,7 +113,7 @@ abstract class AbstractFederatedShareProvider implements IShareProvider {
 		IDBConnection $connection,
 		EventDispatcherInterface $eventDispatcher,
 		AddressHandler $addressHandler,
-		Notifications $notifications,
+		AbstractNotifications $notifications,
 		TokenHandler $tokenHandler,
 		IL10N $l10n,
 		ILogger $logger,
@@ -1137,7 +1137,8 @@ abstract class AbstractFederatedShareProvider implements IShareProvider {
 	 */
 	public function addShare($remote, $token, $name, $owner, $shareWith, $remoteId) {
 		\OC_Util::setupFS($shareWith);
-		$this->externalManagerProvider()->addShare(
+		$externalManagerProvider = $this->externalManagerProvider;
+		$externalManagerProvider()->addShare(
 			$remote,
 			$token,
 			'',
