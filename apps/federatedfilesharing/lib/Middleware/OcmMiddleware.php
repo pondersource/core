@@ -133,9 +133,6 @@ class OcmMiddleware {
 		} catch (Share\Exceptions\ShareNotFound $e) {
 			throw new BadRequestException("Share with id {$id} does not exist");
 		}
-		if ($share->getShareType() !== FederatedShareProvider::SHARE_TYPE_REMOTE) {
-			throw new BadRequestException("Share with id {$id} does not exist");
-		}
 
 		if ($share->getToken() !== $sharedSecret) {
 			throw new ForbiddenException("The secret does not match");
