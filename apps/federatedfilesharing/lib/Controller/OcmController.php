@@ -337,19 +337,21 @@ class OcmController extends Controller {
 			switch ($notificationType) {
 				case FileNotification::NOTIFICATION_TYPE_SHARE_ACCEPTED:
 					$this->ocmMiddleware->assertOutgoingSharingEnabled();
-					$share = $this->ocmMiddleware->getValidShare(
+					$share = $this->getValidShare(
 						$providerId,
 						$notification['sharedSecret']
 					);
-					$this->fedShareManager->acceptShare($share);
+					$fedShareManager = $this->getFedShareManagerForShareType($share->getShareType());
+					$fedShareManager->acceptShare($share);
 					break;
 				case FileNotification::NOTIFICATION_TYPE_SHARE_DECLINED:
 					$this->ocmMiddleware->assertOutgoingSharingEnabled();
-					$share = $this->ocmMiddleware->getValidShare(
+					$share = $this->getValidShare(
 						$providerId,
 						$notification['sharedSecret']
 					);
-					$this->fedShareManager->declineShare($share);
+					$fedShareManager = $this->getFedShareManagerForShareType($share->getShareType());
+					$fedShareManager->declineShare($share);
 					break;
 				case FileNotification::NOTIFICATION_TYPE_REQUEST_RESHARE:
 					$this->ocmMiddleware->assertOutgoingSharingEnabled();
@@ -359,7 +361,7 @@ class OcmController extends Controller {
 							'senderId' => $notification['senderId'],
 						]
 					);
-					$share = $this->ocmMiddleware->getValidShare(
+					$share = $this->getValidShare(
 						$providerId,
 						$notification['sharedSecret']
 					);
@@ -371,7 +373,8 @@ class OcmController extends Controller {
 					$this->ocmMiddleware->assertNotSameUser($ownerAddress, $shareWithAddress);
 					$this->ocmMiddleware->assertSharingPermissionSet($share);
 
-					$reShare = $this->fedShareManager->reShare(
+					$fedShareManager = $this->getFedShareManagerForShareType($share->getShareType());
+					$reShare = $fedShareManager->reShare(
 						$share,
 						$notification['senderId'],
 						$notification['shareWith']
@@ -390,11 +393,12 @@ class OcmController extends Controller {
 							'permission' => $notification['permission']
 						]
 					);
-					$share = $this->ocmMiddleware->getValidShare(
+					$share = $this->getValidShare(
 						$providerId,
 						$notification['sharedSecret']
 					);
-					$this->fedShareManager->updateOcmPermissions(
+					$fedShareManager = $this->getFedShareManagerForShareType($share->getShareType());
+					$fedShareManager->updateOcmPermissions(
 						$share,
 						$notification['permission']
 					);
@@ -460,6 +464,70 @@ class OcmController extends Controller {
 			[],
 			Http::STATUS_CREATED
 		);
+	}
+
+	private function getFedShareManagerForShareType($shareType) {
+		$fedShareManagerClass = $this->config->getSystemValue('federatedfilesharing.fedShareManager', '');
+
+		if (!empty($fedShareManagerClass)) {
+			$fedShareManager = \OC::$server->query($fedShareManagerClass);
+
+			if ($fedShareManager->isSupportedShareType($shareType) === true) {
+				return $fedShareManager;
+			}
+		} else if ($this->fedShareManager->isSupportedShareType($shareType) === true) {
+			return $this->fedShareManager;
+		}
+
+		throw new NotImplementedException(
+			"ShareType {$shareType} is not supported"
+		);
+	}
+
+	private function getValidShare($id, $sharedSecret) {
+		try {
+			$share = $this->getShareById($id);
+		} catch (Share\Exceptions\ShareNotFound $e) {
+			throw new BadRequestException("Share with id {$id} does not exist");
+		}
+
+		if ($share->getToken() !== $sharedSecret) {
+			throw new ForbiddenException("The secret does not match");
+		}
+		return $share;
+	}
+
+	/**
+	 * Since we have multiple providers but the OCS Share API v1 does
+	 * not support this we need to check all backends.
+	 *
+	 * @param string $id
+	 * @return IShare
+	 * @throws ShareNotFound
+	 */
+	private function getShareById($id) {
+		$share = null;
+		$providerIds = \array_keys($this->shareManager->getProvidersCapabilities());
+		// Go through all the available providers to find the share.
+		foreach($providerIds as $providerId){
+			try {
+				$share = $this->shareManager->getShareById($providerId .":". $id);
+				return $share;
+			} catch (ShareNotFound $e) {
+				// The first provider covers the local shares. Other providers are assumed to be server2server.
+				if (!$this->shareManager->outgoingServer2ServerSharesAllowed()) {
+					throw new ShareNotFound();
+				}
+
+				continue;
+			}
+		}
+
+		if (!isset($share)) {
+			throw new ShareNotFound();
+		}
+
+		return $share;
 	}
 
 	/**
