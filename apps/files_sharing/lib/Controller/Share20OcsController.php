@@ -1202,7 +1202,7 @@ class Share20OcsController extends OCSController {
 	 */
 	private function getShareById($id, $recipient = null) {
 		$share = null;
-		$providerIds = array_keys($this->shareManager->getProvidersCapabilities());
+		$providerIds = \array_keys($this->shareManager->getProvidersCapabilities());
 		// Go through all the available providers to find the share.
 		foreach($providerIds as $providerId){
 			try {
