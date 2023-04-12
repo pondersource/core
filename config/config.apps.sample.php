@@ -54,6 +54,12 @@ $CONFIG = [
 'admin_audit.groups' => ['group1', 'group2'],
 
 /**
+ * App: Federated File Sharing
+ *
+ * Possible keys: `federatedfilesharing.fedShareManager` STRING
+ */
+
+/**
  * App: Files Antivirus
  *
  * Possible keys: `files_antivirus.av_path` STRING
@@ -467,6 +473,17 @@ $CONFIG = [
 		// ...
 	],
 ],
+
+/**
+ * App: Share Files
+ *
+ * Possible keys: `files_sharing.ocsMiddleware` STRING
+ */
+
+/**
+ * The middleware class name for RemoteOcsController
+ */
+'files_sharing.ocsMiddleware' => 'OCA\Files_Sharing\Middleware\RemoteOcsMiddleware',
 
 /**
  * App: Windows Network Drive (WND)

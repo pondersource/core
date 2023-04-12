@@ -140,7 +140,8 @@ class Application extends App {
 					$server->getUserManager(),
 					$c->query('AddressHandler'),
 					$c->query('FederatedShareManager'),
-					$server->getLogger()
+					$server->getLogger(),
+					$server->getConfig()
 				);
 			}
 		);
@@ -233,7 +234,11 @@ class Application extends App {
 			\OC::$server->getLogger(),
 			\OC::$server->getLazyRootFolder(),
 			\OC::$server->getConfig(),
-			\OC::$server->getUserManager()
+			\OC::$server->getUserManager(),
+			function () {
+				$sharingApp = new \OCA\Files_Sharing\AppInfo\Application();
+				return $sharingApp->getContainer()->query('ExternalManager');
+			}
 		);
 	}
 

@@ -266,7 +266,7 @@ class Manager implements IManager {
 			if ($share->getSharedWith() !== null) {
 				throw new \InvalidArgumentException('SharedWith should be empty');
 			}
-		} elseif ($share->getShareType() === \OCP\Share::SHARE_TYPE_REMOTE) {
+		} elseif ($share->getShareType() === \OCP\Share::SHARE_TYPE_REMOTE || $share->getShareType() === \OCP\Share::SHARE_TYPE_REMOTE_GROUP) {
 			if ($share->getSharedWith() === null) {
 				throw new \InvalidArgumentException('SharedWith should not be empty');
 			}
@@ -1529,8 +1529,23 @@ class Manager implements IManager {
 
 		// If it is not a link share try to fetch a federated share by token
 		if ($share === null) {
-			$provider = $this->factory->getProviderForType(\OCP\Share::SHARE_TYPE_REMOTE);
-			$share = $provider->getShareByToken($token);
+			try {
+				$provider = $this->factory->getProviderForType(\OCP\Share::SHARE_TYPE_REMOTE);
+				$share = $provider->getShareByToken($token);
+			}
+			catch (ShareNotFound $ex) {
+				$this->logger->error(
+					"Shared file not found by token: $token for federated user share, trying to check federated group share.",
+					['app' => __CLASS__]
+				);
+			}
+		}
+
+		if ($share === null) {
+			$provider = $this->factory->getProviderForType(\OCP\Share::SHARE_TYPE_REMOTE_GROUP);
+			if ($provider !== null) {
+				$share = $provider->getShareByToken($token);
+			}
 		}
 
 		if (self::shareHasExpired($share)) {
@@ -1633,6 +1648,16 @@ class Manager implements IManager {
 			$capabilities[$provider->identifier()] = $provider->getProviderCapabilities();
 		}
 		return $capabilities;
+	}
+
+	public function getSupportedShareTypes() {
+		$providers = $this->factory->getProviders();
+		$shareTypes = [];
+		foreach ($providers as $provider) {
+			$shareTypes = \array_merge($shareTypes, array_keys($provider->getProviderCapabilities()));
+		}
+		$shareTypes = \array_keys(\array_intersect(\OCP\Share::CONVERT_SHARE_TYPE_TO_STRING, $shareTypes));
+		return $shareTypes;
 	}
 
 	/**

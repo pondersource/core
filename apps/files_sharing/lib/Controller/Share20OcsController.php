@@ -267,7 +267,7 @@ class Share20OcsController extends OCSController {
 			if ($share->getToken() !== null) {
 				$result['url'] = $this->urlGenerator->linkToRouteAbsolute('files_sharing.sharecontroller.showShare', ['token' => $share->getToken()]);
 			}
-		} elseif ($share->getShareType() === Share::SHARE_TYPE_REMOTE) {
+		} elseif ($share->getShareType() === Share::SHARE_TYPE_REMOTE || $share->getShareType() === Share::SHARE_TYPE_REMOTE_GROUP ) {
 			$result['share_with'] = $share->getSharedWith();
 			$result['share_with_displayname'] = $share->getSharedWith();
 			$result['token'] = $share->getToken();
@@ -552,7 +552,7 @@ class Share20OcsController extends OCSController {
 			if ($password !== '') {
 				$share->setPassword($password);
 			}
-		} elseif ($shareType === Share::SHARE_TYPE_REMOTE) {
+		} elseif ($shareType === Share::SHARE_TYPE_REMOTE || $shareType === Share::SHARE_TYPE_REMOTE_GROUP) {
 			if (!$this->shareManager->outgoingServer2ServerSharesAllowed()) {
 				$share->getNode()->unlock(ILockingProvider::LOCK_SHARED);
 				return new Result(null, 403, $this->l->t('Sharing %s failed because the back end does not allow shares from type %s', [$path->getPath(), $shareType]));
@@ -700,6 +700,8 @@ class Share20OcsController extends OCSController {
 			return new Result();
 		}
 
+		$supportedShareTypes = $this->shareManager->getSupportedShareTypes();
+
 		$sharedWithMe = $this->request->getParam('shared_with_me', null);
 		$reshares = $this->request->getParam('reshares', null);
 		$subfiles = $this->request->getParam('subfiles');
@@ -708,26 +710,17 @@ class Share20OcsController extends OCSController {
 		$includeTags = $this->request->getParam('include_tags', false);
 		$shareTypes = $this->request->getParam('share_types', '');
 		if ($shareTypes === '') {
-			$shareTypes = [
-				Share::SHARE_TYPE_USER,
-				Share::SHARE_TYPE_GROUP,
-				Share::SHARE_TYPE_LINK,
-				Share::SHARE_TYPE_REMOTE,
-			];
+			$shareTypes = $supportedShareTypes;
 		} else {
 			$shareTypes = \explode(',', $shareTypes);
 		}
 
-		$requestedShareTypes = [
-			Share::SHARE_TYPE_USER => false,
-			Share::SHARE_TYPE_GROUP => false,
-			Share::SHARE_TYPE_LINK => false,
-			Share::SHARE_TYPE_REMOTE => false,
-		];
+		$requestedShareTypes = array_fill_keys($supportedShareTypes, false);
 
 		if ($this->shareManager->outgoingServer2ServerSharesAllowed() === false) {
 			// if outgoing remote shares aren't allowed, the remote share type can't be chosen
 			unset($requestedShareTypes[Share::SHARE_TYPE_REMOTE]);
+			unset($requestedShareTypes[Share::SHARE_TYPE_REMOTE_GROUP]);
 		}
 		foreach ($shareTypes as $shareType) {
 			if (isset($requestedShareTypes[$shareType])) {
@@ -1209,16 +1202,24 @@ class Share20OcsController extends OCSController {
 	 */
 	private function getShareById($id, $recipient = null) {
 		$share = null;
+		$providerIds = \array_keys($this->shareManager->getProvidersCapabilities());
+		// Go through all the available providers to find the share.
+		foreach($providerIds as $providerId){
+			try {
+				$share = $this->shareManager->getShareById($providerId .":". $id, $recipient);
+				return $share;
+			} catch (ShareNotFound $e) {
+				// The first provider covers the local shares. Other providers are assumed to be server2server.
+				if (!$this->shareManager->outgoingServer2ServerSharesAllowed()) {
+					throw new ShareNotFound();
+				}
 
-		// First check if it is an internal share.
-		try {
-			$share = $this->shareManager->getShareById('ocinternal:'.$id, $recipient);
-		} catch (ShareNotFound $e) {
-			if (!$this->shareManager->outgoingServer2ServerSharesAllowed()) {
-				throw new ShareNotFound();
+				continue;
 			}
+		}
 
-			$share = $this->shareManager->getShareById('ocFederatedSharing:' . $id, $recipient);
+		if (!isset($share)) {
+			throw new ShareNotFound();
 		}
 
 		return $share;
