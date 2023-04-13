@@ -36,6 +36,7 @@ use OCP\ILogger;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
+use OCP\IConfig;
 
 /**
  * Class OcmController
@@ -76,6 +77,11 @@ class OcmController extends Controller {
 	protected $logger;
 
 	/**
+	 * @var IConfig
+	 */
+	protected $config;
+
+	/**
 	 * OcmController constructor.
 	 *
 	 * @param string $appName
@@ -105,6 +111,7 @@ class OcmController extends Controller {
 		$this->addressHandler = $addressHandler;
 		$this->fedShareManager = $fedShareManager;
 		$this->logger = $logger;
+		$this->config = \OC::$server->getConfig();
 	}
 
 	/**
@@ -181,7 +188,7 @@ class OcmController extends Controller {
 		$controllerClass = $this->config->getSystemValue('sharing.ocmController');
 		if ($controllerClass !== '') {
 			$controller = \OC::$server->query($controllerClass);
-		  return $controller->createShare(
+			return $controller->createShare(
 				$shareWith,
 				$name,
 				$description,
@@ -306,7 +313,7 @@ class OcmController extends Controller {
 		$controllerClass = $this->config->getSystemValue('sharing.ocmController');
 		if ($controllerClass !== '') {
 			$controller = \OC::$server->query($controllerClass);
-		  return $controller->processNotification(
+			return $controller->processNotification(
 				$notificationType,
 				$resourceType,
 				$providerId,

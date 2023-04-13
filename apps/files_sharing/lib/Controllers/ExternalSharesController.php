@@ -32,6 +32,7 @@ use OCP\Http\Client\IClientService;
 use OCP\IRequest;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
+use OCP\IConfig;
 
 /**
  * Class ExternalSharesController
@@ -49,6 +50,11 @@ class ExternalSharesController extends Controller {
 	 * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
 	 */
 	private $dispatcher;
+
+	/**
+	 * @var IConfig
+	 */
+	protected $config;
 
 	/**
 	 * ExternalSharesController constructor.
@@ -70,6 +76,8 @@ class ExternalSharesController extends Controller {
 		$this->externalManager = $externalManager;
 		$this->clientService = $clientService;
 		$this->dispatcher = $eventDispatcher;
+		$this->config = \OC::$server->getConfig();
+		
 		// Allow other apps to add an external manager for user-to-group shares
 		$managerClass = $this->config->getSystemValue('sharing.groupExternalManager');
 		if ($managerClass !== '') {
@@ -88,7 +96,7 @@ class ExternalSharesController extends Controller {
 		if ($this->groupExternalManager !== null) {
 			$federatedGroupResult = $this->groupExternalManager->getOpenShares();
 		}
-		$result = array_merge($federatedGroupResult,  $this->externalManager->getOpenShares());
+		$result = array_merge($federatedGroupResult, $this->externalManager->getOpenShares());
 		return new JSONResponse($result);
 	}
 
@@ -100,7 +108,7 @@ class ExternalSharesController extends Controller {
 	 * @return JSONResponse
 	 */
 	public function create($id, $share_type) {
-		if($share_type === "group" && $this->groupExternalManager !== null) {
+		if ($share_type === "group" && $this->groupExternalManager !== null) {
 			$manager = $this->groupExternalManager;
 		} else {
 			$manager = $this->externalManager;
