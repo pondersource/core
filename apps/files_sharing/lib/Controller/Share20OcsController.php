@@ -267,7 +267,7 @@ class Share20OcsController extends OCSController {
 			if ($share->getToken() !== null) {
 				$result['url'] = $this->urlGenerator->linkToRouteAbsolute('files_sharing.sharecontroller.showShare', ['token' => $share->getToken()]);
 			}
-		} elseif ($share->getShareType() === Share::SHARE_TYPE_REMOTE) {
+		} elseif ($share->getShareType() === Share::SHARE_TYPE_REMOTE || $share->getShareType() === Share::SHARE_TYPE_REMOTE_GROUP ) {
 			$result['share_with'] = $share->getSharedWith();
 			$result['share_with_displayname'] = $share->getSharedWith();
 			$result['token'] = $share->getToken();
@@ -725,9 +725,15 @@ class Share20OcsController extends OCSController {
 			Share::SHARE_TYPE_REMOTE => false,
 		];
 
+		if (\OC::$server->getAppManager()->isEnabledForUser('federatedgroups')) {
+			$shareTypes[] = Share::SHARE_TYPE_REMOTE_GROUP;
+			$requestedShareTypes[Share::SHARE_TYPE_REMOTE_GROUP] = false;
+		}
+
 		if ($this->shareManager->outgoingServer2ServerSharesAllowed() === false) {
 			// if outgoing remote shares aren't allowed, the remote share type can't be chosen
 			unset($requestedShareTypes[Share::SHARE_TYPE_REMOTE]);
+			unset($requestedShareTypes[Share::SHARE_TYPE_REMOTE_GROUP]);
 		}
 		foreach ($shareTypes as $shareType) {
 			if (isset($requestedShareTypes[$shareType])) {
@@ -1209,16 +1215,25 @@ class Share20OcsController extends OCSController {
 	 */
 	private function getShareById($id, $recipient = null) {
 		$share = null;
-
+		$providerIds =
+		[
+			"ocinternal", 
+			"ocFederatedSharing",
+			"ocGroupFederatedSharing",
+			"ocMixFederatedSharing"
+		];
 		// First check if it is an internal share.
-		try {
-			$share = $this->shareManager->getShareById('ocinternal:'.$id, $recipient);
-		} catch (ShareNotFound $e) {
-			if (!$this->shareManager->outgoingServer2ServerSharesAllowed()) {
-				throw new ShareNotFound();
-			}
+		foreach($providerIds as $providerId){
+			try {
+				$share = $this->shareManager->getShareById($providerId .":". $id, $recipient);
+				return $share;
+			} catch (ShareNotFound $e) {
+				if (!$this->shareManager->outgoingServer2ServerSharesAllowed()) {
+					throw new ShareNotFound();
+				}
 
-			$share = $this->shareManager->getShareById('ocFederatedSharing:' . $id, $recipient);
+				continue;
+			}
 		}
 
 		return $share;

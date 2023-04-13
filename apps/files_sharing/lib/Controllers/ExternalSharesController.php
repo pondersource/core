@@ -40,6 +40,7 @@ use OCP\IConfig;
  * @package OCA\Files_Sharing\Controllers
  */
 class ExternalSharesController extends Controller {
+
 	/** @var \OCA\Files_Sharing\External\Manager */
 	private $externalManager;
 	/** @var \OCA\Files_Sharing\External\Manager */
@@ -73,6 +74,7 @@ class ExternalSharesController extends Controller {
 		EventDispatcherInterface $eventDispatcher
 	) {
 		parent::__construct($appName, $request);
+		error_log("external shares controller construct");
 		$this->externalManager = $externalManager;
 		$this->clientService = $clientService;
 		$this->dispatcher = $eventDispatcher;
@@ -132,7 +134,7 @@ class ExternalSharesController extends Controller {
 				]
 			);
 			$this->dispatcher->dispatch($event, 'remoteshare.accepted', $event);
-			$this->externalManager->acceptShare($id);
+			$manager->acceptShare($id);
 		}
 		return new JSONResponse();
 	}
@@ -144,8 +146,9 @@ class ExternalSharesController extends Controller {
 	 * @param integer $id
 	 * @return JSONResponse
 	 */
-	public function destroy($id) {
-		$shareInfo = $this->externalManager->getShare($id);
+	public function destroy($id, $share_type) {
+		$manager = $this->getRelatedManager($share_type);  
+		$shareInfo = $manager->getShare($id);
 		if ($shareInfo !== false) {
 			$event = new GenericEvent(
 				null,
@@ -157,9 +160,19 @@ class ExternalSharesController extends Controller {
 				]
 			);
 			$this->dispatcher->dispatch($event, 'remoteshare.declined');
-			$this->externalManager->declineShare($id);
+			$manager->declineShare($id);
 		}
 		return new JSONResponse();
+	}
+
+	private function getRelatedManager($share_type){
+		if($share_type === "group" && $this->groupExternalManager !== null) {
+			$manager = $this->groupExternalManager;
+		} else {
+			$manager = $this->externalManager;
+		}
+		return $manager;
+
 	}
 
 	/**

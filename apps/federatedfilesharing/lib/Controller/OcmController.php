@@ -37,6 +37,7 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\IConfig;
+use OCP\Share\Exceptions\ShareNotFound;
 
 /**
  * Class OcmController
@@ -185,22 +186,24 @@ class OcmController extends Controller {
 		$protocol
 	) {
 		// Allow other apps to overwrite the behaviour of this endpoint
-		$controllerClass = $this->config->getSystemValue('sharing.ocmController');
-		if ($controllerClass !== '') {
-			$controller = \OC::$server->query($controllerClass);
-			return $controller->createShare(
-				$shareWith,
-				$name,
-				$description,
-				$providerId,
-				$owner,
-				$ownerDisplayName,
-				$sender,
-				$senderDisplayName,
-				$shareType,
-				$resourceType,
-				$protocol
-			);
+		if (($shareType === 'group')){
+			$controllerClass = $this->config->getSystemValue('sharing.ocmController');
+			if ($controllerClass !== '') {
+				$controller = \OC::$server->query($controllerClass);
+				return $controller->createShare(
+					$shareWith,
+					$name,
+					$description,
+					$providerId,
+					$owner,
+					$ownerDisplayName,
+					$sender,
+					$senderDisplayName,
+					$shareType,
+					$resourceType,
+					$protocol
+				);
+			}
 		}
 		try {
 			$this->ocmMiddleware->assertIncomingSharingEnabled();
@@ -309,18 +312,6 @@ class OcmController extends Controller {
 		$providerId,
 		$notification
 	) {
-		// Allow other apps to overwrite the behaviour of this endpoint
-		$controllerClass = $this->config->getSystemValue('sharing.ocmController');
-		if ($controllerClass !== '') {
-			$controller = \OC::$server->query($controllerClass);
-			return $controller->processNotification(
-				$notificationType,
-				$resourceType,
-				$providerId,
-				$notification
-			);
-		}
-
 		try {
 			if (!\is_array($notification)) {
 				throw new BadRequestException(
@@ -408,17 +399,35 @@ class OcmController extends Controller {
 						$providerId,
 						$notification['sharedSecret']
 					);
+					///Todo: probably we have problem on this action	
 					$this->fedShareManager->updateOcmPermissions(
 						$share,
 						$notification['permission']
 					);
 					break;
 				case FileNotification::NOTIFICATION_TYPE_SHARE_UNSHARED:
-					$this->fedShareManager->unshare(
-						$providerId,
-						$notification['sharedSecret']
-					);
-					break;
+					{	
+						try{
+							$this->fedShareManager->unshare(
+								$providerId,
+								$notification['sharedSecret']
+							);
+						}catch(ShareNotFound $ex){
+							
+							$controllerClass = $this->config->getSystemValue('sharing.ocmController');
+							if ($controllerClass !== '') {
+								$controller = \OC::$server->query($controllerClass);
+								if (\OC::$server->getAppManager()->isEnabledForUser('federatedgroups')) {
+									$groupFedShareManager = \OCA\FederatedGroups\AppInfo\Application::getFedSharemanager();
+									$groupFedShareManager->unshare(
+										$providerId,
+										$notification['sharedSecret']
+									);
+								}
+							}
+						}
+						break;
+					}
 				case FileNotification::NOTIFICATION_TYPE_RESHARE_UNDO:
 					// Stub. Let it fallback to the prev endpoint for now
 					return new JSONResponse(
