@@ -52,6 +52,7 @@ PHPSTAN=php -d zend.enable_gc=0 vendor-bin/phpstan/vendor/bin/phpstan
 TEST_DATABASE=sqlite
 TEST_EXTERNAL_ENV=smb-silvershell
 TEST_PHP_SUITE=
+UNIT_TEST_FILTER=
 
 DOC_LINK_VERSION=
 
@@ -127,6 +128,7 @@ help:
 	@echo
 	@echo It is also possible to run individual PHP test files with the following command:
 	@echo -e "make test-php-unit TEST_DATABASE=mysql TEST_PHP_SUITE=path/to/testfile.php"
+	@echo -e "run just one test with combination of TEST_PHP_SUITE=path/to/testfile.php and UNIT_TEST_FILTER=--filter=name_of_test_function"
 	@echo
 	@echo -e "Tools:\n"
 	@echo -e "make test-php-style-fix\t\trun PHP code style checks and fix any issues found"
@@ -192,7 +194,7 @@ clean-nodejs-deps:
 
 .PHONY: test-php-unit
 test-php-unit: $(composer_dev_deps)
-	PHPUNIT=$(PHPUNIT) build/autotest.sh $(TEST_DATABASE) $(TEST_PHP_SUITE)
+	PHPUNIT=$(PHPUNIT) $(UNIT_TEST_FILTER) build/autotest.sh $(TEST_DATABASE) $(TEST_PHP_SUITE) 
 
 .PHONY: test-external
 test-external: $(composer_dev_deps)
