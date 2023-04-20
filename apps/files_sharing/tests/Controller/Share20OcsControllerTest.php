@@ -123,11 +123,11 @@ class Share20OcsControllerTest extends TestCase {
 			->willReturn($this->newShare());
 		$this->shareManager
 			->method('getProvidersCapabilities')
-			->willReturn( [
-							"ocinternal" => 
+			->willReturn([
+							"ocinternal" =>
 								[
-									"user" => ["shareExpiration"], 
-									"group" => ["shareExpiration"], 
+									"user" => ["shareExpiration"],
+									"group" => ["shareExpiration"],
 									"link" => ["shareExpiration", "passwordProtected"]
 								],
 							"ocFederatedSharing"=>
