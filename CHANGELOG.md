@@ -3,72 +3,54 @@ Changelog for ownCloud Core [unreleased] (UNRELEASED)
 The following sections list the changes in ownCloud core unreleased relevant to
 ownCloud admins and users.
 
-[unreleased]: https://github.com/owncloud/core/compare/v10.12.0...master
+[unreleased]: https://github.com/owncloud/core/compare/v10.12.1...master
 
 Summary
 -------
 
-* Bugfix - Prevent 507 Insufficient Storage on 32-bit systems: [#40567](https://github.com/owncloud/core/pull/40567)
-* Bugfix - Respect User Home Folder Naming Rule home directory for chunks uploads: [#40693](https://github.com/owncloud/core/pull/40693)
-* Bugfix - Add rewrite base to .htaccess: [#40696](https://github.com/owncloud/core/issues/40696)
-* Change - Update PHP dependencies: [#40691](https://github.com/owncloud/core/pull/40691)
-* Change - Fix permission bits when enforcing passwords on public links: [#40701](https://github.com/owncloud/core/pull/40701)
-* Change - Do not auto-enable user-key encryption: [#40702](https://github.com/owncloud/core/pull/40702)
+* Change - Update PHP dependencies: [#40724](https://github.com/owncloud/core/pull/40724)
 * Change - Fix name length check on federated shares: [#40726](https://github.com/owncloud/core/pull/40726)
 
 Details
 -------
 
-* Bugfix - Prevent 507 Insufficient Storage on 32-bit systems: [#40567](https://github.com/owncloud/core/pull/40567)
+* Change - Update PHP dependencies: [#40724](https://github.com/owncloud/core/pull/40724)
 
-   https://github.com/owncloud/core/pull/40567
-   With
-   the
-   introduction
-   of
-   compatibility
-   to
-   32-bit
-   systems
-   broke
-   as
-   we
-   are
-   now
-   casting
-   $freeSpace
-   to
-   int
-   and
-   this
-   caused
-   an
-   integer
-   overflow
-   on
-   such
-   systems
-   when
-   the
-   free
-   space
-   was
-   above
-   the
-   max
-   supported
-   value.
-   We
-   added
-   therefore
-   an
-   additional
-   check
-   for
-   32-bit
-   systems
-   in
-   QuotaPlugin.php.
+   The following have been updated: - guzzlehttp/guzzle (7.5.0 to 7.5.1) - punic/punic (3.8.0 to
+   3.8.1)
+
+   The following have been updated in apps/files_external/3rdparty: - google/apiclient
+   (2.13.1 to 2.13.2)
+
+   https://github.com/owncloud/core/pull/40724
+   https://github.com/owncloud/core/pull/40731
+   https://github.com/owncloud/core/pull/40742
+
+* Change - Fix name length check on federated shares: [#40726](https://github.com/owncloud/core/pull/40726)
+
+   A federated share with a too long name results in inaccessible data.
+
+   https://github.com/owncloud/core/pull/40726
+
+Changelog for ownCloud Core [10.12.1] (2023-04-03)
+=======================================
+The following sections list the changes in ownCloud core 10.12.1 relevant to
+ownCloud admins and users.
+
+[10.12.1]: https://github.com/owncloud/core/compare/v10.12.0...v10.12.1
+
+Summary
+-------
+
+* Bugfix - Respect User Home Folder Naming Rule home directory for chunks uploads: [#40693](https://github.com/owncloud/core/pull/40693)
+* Bugfix - Add rewrite base to .htaccess: [#40697](https://github.com/owncloud/core/pull/40697)
+* Bugfix - Prevent 507 Insufficient Storage on 32-bit systems: [#40709](https://github.com/owncloud/core/pull/40709)
+* Change - Update PHP dependencies: [#40691](https://github.com/owncloud/core/pull/40691)
+* Change - Fix permission bits when enforcing passwords on public links: [#40701](https://github.com/owncloud/core/pull/40701)
+* Change - Do not auto-enable user-key encryption: [#40702](https://github.com/owncloud/core/pull/40702)
+
+Details
+-------
 
 * Bugfix - Respect User Home Folder Naming Rule home directory for chunks uploads: [#40693](https://github.com/owncloud/core/pull/40693)
 
@@ -79,8 +61,9 @@ Details
    that chunks uploads respect the configured home directory.
 
    https://github.com/owncloud/core/pull/40693
+   https://github.com/owncloud/core/pull/40719
 
-* Bugfix - Add rewrite base to .htaccess: [#40696](https://github.com/owncloud/core/issues/40696)
+* Bugfix - Add rewrite base to .htaccess: [#40697](https://github.com/owncloud/core/pull/40697)
 
    In previous core versions the rewrite base config.php option was not added to the generated
    .htaccess file. The use of a more hardened .htaccess file in version 10.12.0 (being introduced
@@ -92,19 +75,27 @@ Details
    https://github.com/owncloud/core/issues/40696
    https://github.com/owncloud/core/pull/40697
 
+* Bugfix - Prevent 507 Insufficient Storage on 32-bit systems: [#40709](https://github.com/owncloud/core/pull/40709)
+
+   With the introduction of https://github.com/owncloud/core/pull/40567 compatibility to
+   32-bit systems broke as we are now casting $freeSpace to int and this caused an integer overflow
+   on such systems when the free space was above the max supported value. We added therefore an
+   additional check for 32-bit systems in QuotaPlugin.php.
+
+   https://github.com/owncloud/core/pull/40709
+   https://github.com/owncloud/core/pull/40729
+
 * Change - Update PHP dependencies: [#40691](https://github.com/owncloud/core/pull/40691)
 
    The following have been updated: - guzzlehttp/psr7 (2.4.3 to 2.4.4) - icewind/streams (0.7.6
-   to 0.7.7) - punic/punic (3.8.0 to 3.8.1)
+   to 0.7.7)
 
    The following have been updated in apps/files_external/3rdparty: - google/apiclient
-   (2.12.6 to 2.13.2) - icewind/streams (0.7.6 to 0.7.7)
+   (2.12.6 to 2.13.1) - icewind/streams (0.7.6 to 0.7.7)
 
    https://github.com/owncloud/core/pull/40691
    https://github.com/owncloud/core/pull/40683
    https://github.com/owncloud/core/pull/40690
-   https://github.com/owncloud/core/pull/40724
-   https://github.com/owncloud/core/pull/40731
 
 * Change - Fix permission bits when enforcing passwords on public links: [#40701](https://github.com/owncloud/core/pull/40701)
 
@@ -121,12 +112,6 @@ Details
    https://github.com/owncloud/enterprise/issues/4939
    https://github.com/owncloud/core/pull/40702
    https://doc.owncloud.com/docs/next/server_release_notes.html#deprecation-note-for-user-key-storage-encryption
-
-* Change - Fix name length check on federated shares: [#40726](https://github.com/owncloud/core/pull/40726)
-
-   A federated share with a too long name results in inaccessible data.
-
-   https://github.com/owncloud/core/pull/40726
 
 Changelog for ownCloud Core [10.12.0] (2023-02-24)
 =======================================
