@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Jörn Friedrich Dreyer <jfd@butonic.de>
  * @author Lukas Reschke <lukas@statuscode.ch>
@@ -51,6 +52,19 @@ if (\stripos(PHP_OS, 'WIN') === 0) {
 
 try {
 	require_once __DIR__ . '/lib/base.php';
+	$user = \OC::$server->getUserSession()->getUser();
+	if ($user) {
+		$emailAddress = \OC::$server->getUserSession()->getUser()->getEMailAddress();
+		if ($emailAddress) {
+			[$_, $emailAddressHost] = explode("@", $emailAddress);
+
+			if ($emailAddressHost !== $_SERVER['HTTP_HOST']) {
+				// throw new \OC\ForbiddenException("Sorry, You are not allowed to Access this domain...");
+				OC_Response::setStatus(OC_Response::STATUS_SERVICE_UNAVAILABLE);
+				OC_Template::printErrorPage("Sorry, You are not allowed to Access this domain...", "Please check you credentials");
+			}
+		}
+	}
 	OC::handleRequest();
 } catch (\OC\ServiceUnavailableException $ex) {
 	\OC::$server->getLogger()->logException($ex, ['app' => 'index']);
