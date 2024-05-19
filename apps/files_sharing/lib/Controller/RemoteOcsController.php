@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Viktar Dubiniuk <dubiniuk@owncloud.com>
  *
@@ -37,6 +38,9 @@ class RemoteOcsController extends OCSController {
 	/** @var Manager */
 	protected $externalManager;
 
+	/** @var \OCA\Files_Sharing\External\Manager */
+	protected $groupExternalManager;
+
 	/** @var string */
 	protected $uid;
 
@@ -57,6 +61,9 @@ class RemoteOcsController extends OCSController {
 		parent::__construct($appName, $request);
 		$this->request = $request;
 		$this->externalManager = $externalManager;
+		if (\OC::$server->getAppManager()->isEnabledForUser('federatedgroups')) {
+			$this->groupExternalManager = \OCA\FederatedGroups\AppInfo\Application::getExternalManager();
+		}
 		$this->uid = $uid;
 	}
 
@@ -81,19 +88,10 @@ class RemoteOcsController extends OCSController {
 	 */
 	public function acceptShare($id) {
 		$shareType = $this->request->getParam('shareType', null);
+		$manager = $this->getRelatedManager($shareType);
 
-		// error_log("==============================");
-		// error_log($shareType);
-		// error_log("==============================");
-		// decide what manager to use
-		// switch ($shareType) {
-		// 	case "group":
-		// 	  	break;
-		// 	default:
-		// }
-
-		if ($this->externalManager->acceptShare((int) $id)) {
-			$share = $this->externalManager->getShare($id);
+		if ($manager->acceptShare((int) $id)) {
+			$share = $manager->getShare($id);
 			// Frontend part expects a list of accepted shares having state and mountpoint at least
 			return new Result(
 				[
@@ -120,12 +118,9 @@ class RemoteOcsController extends OCSController {
 	 */
 	public function declineShare($id) {
 		$shareType = $this->request->getParam('shareType', null);
+		$manager = $this->getRelatedManager($shareType);
 
-		// error_log("==============================");
-		// error_log($shareType);
-		// error_log("==============================");
-
-		if ($this->externalManager->declineShare((int) $id)) {
+		if ($manager->declineShare((int) $id)) {
 			return new Result();
 		}
 
@@ -260,6 +255,14 @@ class RemoteOcsController extends OCSController {
 			$share['file_id'] = $info->getId();
 		}
 		return $share;
+	}
+
+	private function getRelatedManager(string $share_type): Manager {
+		if ($share_type === "group" && $this->groupExternalManager !== null) {
+			return $this->groupExternalManager;
+		} else {
+			return $this->externalManager;
+		}
 	}
 
 	/**
